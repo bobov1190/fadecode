@@ -71,6 +71,7 @@ onBeforeUnmount(() => { document.removeEventListener("click", onDoc); document.r
           </label>
           <button class="btn s g" type="button" :disabled="!on" @click="play('win')">Проверить звук</button>
           <div class="pop-links">
+            <a class="linkbtn" href="/about">О проекте</a>
             <button v-if="auth.user" class="linkbtn" type="button" @click="logout">Выйти</button>
           </div>
         </div>

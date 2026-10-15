@@ -2,7 +2,7 @@ import os
 import time
 
 import click
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, g, jsonify, render_template, request
 
 from . import config, content, db, filters
 
@@ -27,9 +27,19 @@ def create_app(test_config=None):
 
     from . import api, auth, v1, views
 
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(views.bp)
-    app.register_blueprint(api.bp, url_prefix="/api")
+    spa = bool(app.config.get("SERVE_SPA", os.environ.get("SERVE_SPA") == "1"))
+    if spa:
+        # Всё в одном сервисе: Flask отдаёт собранный Vue (frontend/dist) и JSON API. Старый сайт на Jinja не подключается.
+        spa_dir = app.config.get("SPA_DIR") or os.path.join(root, "frontend", "dist")
+
+        @app.before_request
+        def spa_user():
+            # токен в заголовке Authorization; куки и CSRF в этом режиме не используются
+            g.user = auth.user_from_token(request.headers.get("Authorization", "")) if request.path.startswith("/api/v1/") else None
+    else:
+        app.register_blueprint(auth.bp)
+        app.register_blueprint(views.bp)
+        app.register_blueprint(api.bp, url_prefix="/api")
     app.register_blueprint(v1.bp, url_prefix="/api/v1")
 
     @app.after_request
@@ -47,6 +57,8 @@ def create_app(test_config=None):
     def not_found(e):
         if request.path.startswith("/api/"):
             return jsonify(error="Не найдено"), 404
+        if spa:
+            return "Not found", 404
         return render_template("404.html"), 404
 
     @app.errorhandler(413)
@@ -113,6 +125,25 @@ def create_app(test_config=None):
         resp.status_code = 200 if err is None else 503
         resp.headers["Cache-Control"] = "no-store"
         return resp
+
+    if spa:
+        from flask import abort, send_from_directory
+
+        @app.get("/about")
+        def spa_about():
+            return send_from_directory(spa_dir, "landing.html", max_age=0)
+
+        @app.get("/", defaults={"path": ""})
+        @app.get("/<path:path>")
+        def spa_page(path):
+            if path.startswith("api/") or path.startswith("assets/") and not os.path.isfile(os.path.join(spa_dir, path)):
+                abort(404)
+            if path and os.path.isfile(os.path.join(spa_dir, path)):
+                # файлы в assets/ имеют хеш в имени, их можно кэшировать надолго
+                age = 31536000 if path.startswith("assets/") else 3600
+                return send_from_directory(spa_dir, path, max_age=age)
+            # любой другой адрес отдаёт index.html, дальше маршрутизирует Vue Router
+            return send_from_directory(spa_dir, "index.html", max_age=0)
 
     @app.cli.command("seed")
     @click.option("--force", is_flag=True, help="заменить контент в БД содержимым data/*.json")
