@@ -12,9 +12,9 @@ const input = ref("");
 const inputEl = ref(null);
 const msgsEl = ref(null);
 
-const visible = computed(() => !!auth.user && !!route.meta.ai);
-// на повторении адрес без id урока, там урок отдаёт открытый листинг
+// на повторении адрес без id урока, там урок отдаёт открытый листинг; пустой экран без карточки панель не показывает
 const lessonId = computed(() => route.params.lid || ai.lesson);
+const visible = computed(() => !!auth.user && !!route.meta.ai && !!lessonId.value);
 
 function scroll() {
   nextTick(() => { if (msgsEl.value) msgsEl.value.scrollTop = msgsEl.value.scrollHeight; });
