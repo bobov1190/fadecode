@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stepper, listing %}
+{% block title %}Вспоминание · {{ L.title }}{% endblock %}
+{% block content %}
+{{ stepper("recall") }}
+<div class="roundhead">
+  <div>
+    <div class="eyebrow">Раунд {{ r }} из {{ N + 1 }}</div>
+    <h2>{% if whole %}Весь класс по памяти{% elif one %}Пропал метод: {{ names[missing[0]] }}{% else %}Пропало методов: {{ r }}{% endif %}</h2>
+    <p class="muted">{% if whole %}Напиши класс целиком, начиная со строки class.{% else %}Впиши пропавшие методы. Ctrl+Enter проверяет.{% endif %}</p>
+  </div>
+  <div class="dots">{% for i in range(N + 1) %}<i class="{% if i < r - 1 %}on{% elif i == r - 1 %}cur{% endif %}"></i>{% endfor %}</div>
+</div>
+<div class="task"><div class="eyebrow">Задача</div><p>{{ L.task }}</p></div>
+<div class="codebox" id="listing" data-lesson="{{ L.id }}" data-mode="recall">{{ listing(L, missing, whole) }}</div>
+<div class="actions">
+  <button class="btn p" id="next-round" type="button" disabled data-next="{{ next_url }}"{% if whole %} data-finish="1"{% endif %}>{{ next_label }}</button>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson.js') }}"></script>
+{% endblock %}

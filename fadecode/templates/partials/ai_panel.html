@@ -1,0 +1,11 @@
+<div id="ai-root" data-lesson="{{ ai_lesson }}">
+  <button class="ai-fab" id="ai-fab" type="button">ИИ-наставник</button>
+  <section class="ai-panel" id="ai-panel" hidden aria-label="ИИ-наставник">
+    <div class="ai-head"><span>ИИ-наставник</span><button id="ai-close" type="button" aria-label="Закрыть">×</button></div>
+    <div class="ai-msgs" id="ai-msgs"><div class="ai-hello">Спроси, как подступиться к методу. Готовый код я не дам, но наведу на мысль и покажу, где в твоей попытке расхождение.</div></div>
+    <div class="ai-foot">
+      <div class="ai-row"><textarea id="ai-input" placeholder="Твой вопрос…" maxlength="600"></textarea><button class="btn p s" id="ai-send" type="button">→</button></div>
+      <div class="ai-quota" id="ai-quota"></div>
+    </div>
+  </section>
+</div>

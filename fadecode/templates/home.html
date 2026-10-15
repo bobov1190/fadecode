@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Уроки · Fadecode{% endblock %}
+{% block content %}
+<div class="eyebrow">демо</div>
+<h1>Выбери пакет</h1>
+<p class="muted">Внутри пакета: прочитай код, перепиши его поверх призрака, а потом вспоминай метод за методом.</p>
+{% if due %}<div class="actions"><a class="btn p" href="{{ url_for('views.review') }}">Повторить: {{ due }}</a></div>{% endif %}
+<div class="grid">
+  {% for p in packs %}
+  <a class="card" href="{{ url_for('views.pack', pid=p.id) }}">
+    <span class="tag">пакет</span><h3>{{ p.title }}</h3><p>{{ p.desc }}</p>
+    <div class="meta"><span>{{ p["items"]|length }} алгоритмов · готово {{ p.ready }}</span><span class="{{ 'ok' if p.finished else '' }}">пройдено {{ p.finished }}</span></div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

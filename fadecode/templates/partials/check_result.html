@@ -1,0 +1,7 @@
+<div class="res {{ 'mid' if close else 'bad' }}"><b>{{ "Почти" if close else "Не совпало" }}</b> · сходство {{ pct }}%. {{ summary }}
+  <pre>{{ hl }}</pre>
+  <div class="row">
+    {% if close %}<button class="btn s" type="button" data-act="accept">Мой вариант верный, засчитать</button>{% endif %}
+    <button class="btn s g" type="button" data-act="ai-explain">Спросить ИИ, что не так</button>
+  </div>
+</div>

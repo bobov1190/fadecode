@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stepper %}
+{% block title %}{{ L.title }} · Fadecode{% endblock %}
+{% block content %}
+{{ stepper("read") }}
+<div class="eyebrow">{{ L.tag }}</div><h1>{{ L.title }}</h1>
+<div class="task"><div class="eyebrow">Задача</div><p>{{ L.task }}</p></div>
+{% if L.change %}<div class="task change"><div class="eyebrow" style="color:var(--warn)">Что изменилось</div><p>{{ L.change }}</p></div>{% endif %}
+<div class="codebox"><pre class="code">{{ code|highlight }}</pre></div>
+<div class="notes">
+  {% for b in L.blocks %}<div class="note"><code>{{ b.name }}</code><span>{{ b.note }}</span></div>{% endfor %}
+</div>
+<div class="actions">
+  <a class="btn p" href="{{ url_for('views.copy', lid=L.id) }}">Копировать код →</a>
+  <a class="btn" href="{{ url_for('views.recall', lid=L.id) }}">Сразу вспоминать</a>
+</div>
+{% endblock %}

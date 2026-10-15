@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ pack.title }} · Fadecode{% endblock %}
+{% block content %}
+<div class="eyebrow"><a class="crumb" href="{{ url_for('views.home') }}">← Пакеты</a></div>
+<h1>{{ pack.title }}</h1>
+<p class="muted">{{ pack.desc }} Готово уроков: {{ ready }} из {{ pack["items"]|length }}.</p>
+<div class="grid">
+  {% for it in items %}
+  {% if it.L %}
+  <a class="card" href="{{ url_for('views.lesson', lid=it.L.id) }}">
+    <span class="tag">{{ it.n }} · {{ it.category }}</span><h3>{{ it.name }}</h3><p>{{ it.desc }}</p>
+    <div class="meta"><span>{{ it.L.blocks|length }} методов · {{ it.lines }} строк</span><span class="{{ 'ok' if it.finished else '' }}">{{ "пройден" if it.finished else "новый" }}</span></div>
+  </a>
+  {% else %}
+  <div class="card soon">
+    <span class="tag">{{ it.n }} · {{ it.category }}</span><h3>{{ it.name }}</h3><p>{{ it.desc }}</p>
+    <div class="meta"><span>урок готовится</span><span></span></div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

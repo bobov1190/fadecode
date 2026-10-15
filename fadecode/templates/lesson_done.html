@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Урок пройден · {{ L.title }}{% endblock %}
+{% block content %}
+{% set names = {"good": "с первого раза", "hard": "с трудом", "again": "не вспомнил"} %}
+<div class="eyebrow">Урок пройден</div><h1>{{ L.title }}</h1>
+<p class="muted">Что не вспомнилось, вернётся в разделе «Повторение» раньше остальных.</p>
+<div class="sum">
+  {% for name, grade in rows %}<div><code>{{ name }}</code><span class="g-{{ grade }}">{{ names[grade] }}</span></div>{% endfor %}
+</div>
+<div class="actions">
+  {% if nxt %}<a class="btn p" href="{{ url_for('views.lesson', lid=nxt.id) }}">Следующий: {{ nxt.title }} →</a>{% endif %}
+  <a class="btn" href="{{ url_for('views.lesson', lid=L.id) }}">Пройти заново</a>
+  <a class="btn g" href="{{ url_for('views.pack', pid=pack.id) if pack else url_for('views.home') }}">К урокам</a>
+</div>
+{% endblock %}

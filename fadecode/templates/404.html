@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Не найдено · Fadecode{% endblock %}
+{% block content %}
+<div class="empty"><h2>Такой страницы нет</h2><p>Возможно, ссылка устарела.</p>
+  <div class="actions" style="justify-content:center"><a class="btn p" href="{{ url_for('views.home') }}">К урокам</a></div></div>
+{% endblock %}

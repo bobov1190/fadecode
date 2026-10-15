@@ -1,0 +1,47 @@
+/* Дополнения для версии на Flask: ссылки-карточки, формы входа, сообщения, панель ИИ. */
+a.card{text-decoration:none;color:inherit}
+a.tab{display:inline-block;text-decoration:none}
+.top img{cursor:pointer}
+.top .logo{display:block;line-height:0}
+.userbox{display:flex;align-items:center;gap:14px;font-size:14px;color:var(--mut)}
+.userbox form{display:inline}
+.linkbtn{background:none;border:0;padding:0;color:var(--mut);font:inherit;font-size:14px;cursor:pointer}
+.linkbtn:hover{color:var(--text)}
+.flash{padding:12px 16px;border-radius:10px;margin-bottom:22px;font-size:15px;border:1px solid var(--line);background:var(--bg2)}
+.flash.ok{border-color:#2f4a27;color:var(--g2)}
+.flash.bad{border-color:#5a2a26;color:#ff9d94}
+.auth{max-width:380px;margin:40px auto 0}
+.auth form{display:grid;gap:14px;margin-top:22px}
+.auth label{display:grid;gap:6px;font-size:14px;color:var(--mut)}
+.auth input,.set select{background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit}
+.auth input:focus{outline:0;border-color:var(--g)}
+.auth .alt{margin-top:18px;font-size:14px;color:var(--mut)}
+.auth .alt a{color:var(--g2)}
+.shake{animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.advice{margin-top:16px;padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);white-space:pre-wrap;font-size:15px}
+.advice.err{border-color:#5a2a26;color:#ff9d94}
+.set form{display:contents}
+.formrow{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+
+/* ИИ-наставник */
+.ai-fab{position:fixed;right:22px;bottom:22px;z-index:20;padding:12px 18px;border-radius:999px;border:1px solid var(--g);background:var(--bg2);color:var(--g2);font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.ai-fab:hover{background:var(--g);color:#08100a}
+.ai-panel{position:fixed;right:22px;bottom:22px;z-index:21;width:min(380px,calc(100vw - 32px));height:min(520px,calc(100vh - 110px));display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden}
+.ai-panel[hidden],.ai-fab[hidden]{display:none}
+.ai-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-weight:600}
+.ai-head button{background:none;border:0;color:var(--mut);font-size:20px;line-height:1}
+.ai-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{max-width:92%;padding:10px 12px;border-radius:12px;font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ai-msg.user{align-self:flex-end;background:var(--g);color:#08100a}
+.ai-msg.bot{align-self:flex-start;background:var(--bg3);border:1px solid var(--line)}
+.ai-msg.typing{color:var(--mut)}
+.ai-msg.err{color:#ff9d94;border-color:#5a2a26}
+.ai-hello{color:var(--mut);font-size:14px}
+.ai-foot{border-top:1px solid var(--line);padding:10px;display:grid;gap:6px}
+.ai-row{display:flex;gap:8px}
+.ai-row textarea{flex:1;resize:none;height:44px;background:var(--bg3);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14.5px}
+.ai-row textarea:focus{outline:0;border-color:var(--g)}
+.ai-quota{font:400 11.5px "JetBrains Mono",monospace;color:var(--mut)}
+@media(max-width:700px){.userbox .who{display:none}}
+a.btn{text-decoration:none}

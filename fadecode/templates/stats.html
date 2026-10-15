@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Прогресс · Fadecode{% endblock %}
+{% block content %}
+<div class="eyebrow">прогресс</div><h1>Как идёт память</h1>
+<div class="stats">
+  <div class="stat"><b>{{ cards.done }}</b><span>уроков пройдено</span></div>
+  <div class="stat"><b>{{ cards.fixed }}</b><span>методов закреплено</span></div>
+  <div class="stat"><b>{{ cards.accuracy }}</b><span>вспомнено с первого раза</span></div>
+  <div class="stat"><b>{{ cards.due }}</b><span>карточек к повторению</span></div>
+</div>
+<table>
+  <thead><tr><th>Урок</th><th>Методов изучено</th><th>Коробки (светлее значит надёжнее)</th><th></th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.L.title }}</td>
+    <td>{{ r.learned }} / {{ r.L.blocks|length }}</td>
+    <td><div class="boxes">{% for n in r.boxes %}{% if n %}<i style="width:{{ n * 16 }}px;opacity:{{ 0.3 + loop.index0 * 0.175 }}"></i>{% endif %}{% endfor %}</div></td>
+    <td>{% if r.finished %}<span class="g-good">пройден</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="sec">ИИ-разбор</div>
+<p class="muted" style="margin-top:8px">ИИ посмотрит, какие методы запомнены хуже всего, и посоветует, что повторить первым.</p>
+<div class="actions" style="margin-top:12px"><button class="btn" id="advice-btn" type="button"{% if not has_progress %} disabled{% endif %}>Разобрать мой прогресс</button></div>
+<div id="advice-out" class="advice" hidden></div>
+
+<div class="sec">Настройки</div>
+<form class="set" method="post" action="{{ url_for('views.settings') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Порядок исчезновения
+    <select name="order">
+      <option value="small"{% if settings.order == "small" %} selected{% endif %}>от маленького к большому</option>
+      <option value="random"{% if settings.order == "random" %} selected{% endif %}>случайный</option>
+    </select>
+  </label>
+  <label>Раунды
+    <select name="rounds">
+      <option value="all"{% if settings.rounds != "one" %} selected{% endif %}>накопительные: старые пропажи остаются</option>
+      <option value="one"{% if settings.rounds == "one" %} selected{% endif %}>по одному полю за раунд</option>
+    </select>
+  </label>
+  <label><input type="checkbox" name="research"{% if settings.research %} checked{% endif %}> писать журнал попыток</label>
+  <button class="btn s" type="submit">Сохранить</button>
+</form>
+<div class="actions">
+  <a class="btn" href="{{ url_for('views.export') }}">Скачать журнал (JSON)</a>
+  <form method="post" action="{{ url_for('views.reset') }}" data-confirm="Стереть весь прогресс и журнал?">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn g" type="submit">Стереть прогресс</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fadecode — учи код, вспоминая его</title>
+<meta name="description" content="Тренажёр, где готовый код постепенно исчезает, а ты возвращаешь его из памяти. Начинаем с ML на numpy.">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d100e;--bg2:#121613;--bg3:#0a0c0b;--line:#232a25;--text:#e8eee6;--mut:#8e9a8d;--g:#5d9c42;--g2:#86c765;--warn:#e6a15c}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:400 17px/1.6 Onest,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1160px;margin:0 auto;padding:0 28px}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+nav{position:sticky;top:0;z-index:10;background:rgba(13,16,14,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+nav img{height:34px;display:block}
+nav ul{display:flex;gap:30px;list-style:none;font-size:15px;color:var(--mut)}
+nav ul a{text-decoration:none}
+nav ul a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;font:600 16px Onest,sans-serif;text-decoration:none;padding:14px 24px;border-radius:10px;border:1px solid var(--line);color:var(--text);background:transparent;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--mut)}
+.btn.p{background:var(--g);border-color:var(--g);color:#08100a}
+.btn.p:hover{background:var(--g2);border-color:var(--g2)}
+.btn.s{padding:10px 18px;font-size:15px}
+.hero{padding:88px 0 72px}
+.hero .wrap{display:grid;grid-template-columns:1.02fr .98fr;gap:56px;align-items:center}
+.eyebrow{font:500 13px "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--g2);margin-bottom:18px}
+h1{font-size:clamp(42px,6vw,76px);line-height:1.02;letter-spacing:-.035em;font-weight:700}
+.acc{color:var(--g2)}
+.lead{margin:26px 0 34px;font-size:20px;color:var(--mut);max-width:520px}
+.cta{display:flex;gap:14px;flex-wrap:wrap}
+.editor{background:var(--bg3);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.editor .bar{display:flex;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--line);font:500 13px "JetBrains Mono",monospace;color:var(--mut)}
+.editor pre{padding:20px 22px;font:400 14.5px/1.75 "JetBrains Mono",Consolas,monospace;min-height:340px;white-space:pre;overflow:hidden;color:#d6dfd3}
+.editor .cap{padding:14px 18px;border-top:1px solid var(--line);font-size:14px;color:var(--mut);display:flex;gap:12px;align-items:center}
+.editor .cap b{color:var(--text);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--g2);flex:none}
+.k{color:#e6a15c}.s{color:#a6c97f}.n{color:#d98f6a}.f{color:#7fb8d9}.sf{color:#8e9a8d;font-style:italic}.c{color:#5d6b5c}
+.gh{opacity:.28}
+.ph{color:var(--g2);border-left:2px solid var(--g);padding-left:8px}
+.caret{display:inline-block;width:8px;height:1.1em;background:var(--g2);vertical-align:text-bottom;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+section{padding:96px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(30px,4vw,46px);line-height:1.1;letter-spacing:-.03em;font-weight:700;margin-bottom:16px}
+.sub{color:var(--mut);font-size:19px;max-width:640px;margin-bottom:56px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{border-top:2px solid var(--line);padding-top:20px}
+.step:hover{border-color:var(--g)}
+.step .num{font:500 14px "JetBrains Mono",monospace;color:var(--g2)}
+.step h3{font-size:21px;margin:8px 0 8px;letter-spacing:-.01em}
+.step p{font-size:15.5px;color:var(--mut);margin-bottom:18px}
+.mini{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:400 12.5px/1.65 "JetBrains Mono",monospace;white-space:pre;overflow:hidden;color:#d6dfd3}
+.ladder{margin-top:72px;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.ladder h3{font-size:28px;letter-spacing:-.02em;margin-bottom:12px}
+.ladder p{color:var(--mut)}
+.rows{display:grid;gap:10px}
+.row{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;font:500 13px "JetBrains Mono",monospace;color:var(--mut)}
+.row .bars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.row i{display:block;height:30px;border-radius:6px;background:rgba(93,156,66,.22);border:1px solid rgba(93,156,66,.45)}
+.row i.x{background:transparent;border:1px dashed #3a463d}
+.row.last i.x{border-color:var(--g)}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:30px}
+.card h3{font-size:21px;margin-bottom:10px;letter-spacing:-.01em}
+.card p{color:var(--mut);font-size:16px}
+.card .src{margin-top:16px;font:400 12.5px "JetBrains Mono",monospace;color:#6f7d6e}
+.honest{margin-top:20px;border:1px solid var(--g);border-radius:14px;padding:28px 30px;display:grid;grid-template-columns:200px 1fr;gap:24px}
+.honest b{color:var(--g2);font:500 13px "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+.honest p{color:var(--text)}
+.inside{display:grid;grid-template-columns:1fr 1fr;gap:56px}
+.list{list-style:none;border-top:1px solid var(--line)}
+.list li{display:flex;justify-content:space-between;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.list code{font:500 15px "JetBrains Mono",monospace;color:var(--g2)}
+.list span{color:var(--mut);font-size:15px;text-align:right}
+.modes{display:grid;gap:18px}
+.mode{border-left:2px solid var(--g);padding:2px 0 2px 20px}
+.mode h4{font-size:19px;margin-bottom:4px}
+.mode p{color:var(--mut);font-size:15.5px}
+.band{background:var(--g);color:#08100a;border-radius:20px;padding:56px;display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap}
+.band h2{margin:0;color:#08100a}
+.band p{font-size:18px;opacity:.8;margin-top:8px}
+.band .btn{background:#08100a;border-color:#08100a;color:var(--text)}
+.band .btn:hover{background:#000}
+details{border-bottom:1px solid var(--line);padding:22px 0}
+details:first-of-type{border-top:1px solid var(--line)}
+summary{cursor:pointer;font-weight:600;font-size:19px;list-style:none;display:flex;justify-content:space-between;gap:20px}
+summary::after{content:"+";color:var(--g2);font:400 24px "JetBrains Mono",monospace}
+details[open] summary::after{content:"−"}
+details p{margin-top:12px;color:var(--mut);max-width:760px}
+.refs{margin-top:36px;font-size:14px;color:#6f7d6e}
+.refs a{color:var(--mut)}
+.refs li{margin:4px 0;list-style:none}
+footer{border-top:1px solid var(--line);padding:40px 0;color:var(--mut);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+footer img{height:26px}
+@media(max-width:960px){.hero .wrap,.ladder,.inside{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.cards{grid-template-columns:1fr}.honest{grid-template-columns:1fr}nav ul{display:none}.band{padding:36px}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}.hero{padding-top:48px}.wrap{padding:0 20px}.editor pre{font-size:12px;padding:16px}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <a href="#top"><img src="/static/logo-dark.svg" alt="Fadecode"></a>
+    <ul>
+      <li><a href="#how">Как работает</a></li>
+      <li><a href="#science">Наука</a></li>
+      <li><a href="#inside">Внутри</a></li>
+      <li><a href="#faq">Вопросы</a></li>
+    </ul>
+    <a class="btn p s" href="/">Открыть демо</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">тренажёр кода по памяти</div>
+      <h1>Код не читают.<br>Его <span class="acc">вспоминают</span>.</h1>
+      <p class="lead">Fadecode показывает готовый класс, даёт переписать его поверх призрачного текста, а потом по одному убирает методы. Ты возвращаешь их из головы, пока не сможешь написать всё сам.</p>
+      <div class="cta">
+        <a class="btn p" href="/">Попробовать демо →</a>
+        <a class="btn" href="#how">Как это устроено</a>
+      </div>
+    </div>
+    <div class="editor" aria-label="Пример работы тренажёра">
+      <div class="bar"><span>linear_regression.py</span><span id="rnd">раунд 0</span></div>
+      <pre id="code"></pre>
+      <div class="cap"><span class="dot"></span><span id="cap"></span></div>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow">как работает</div>
+    <h2>Четыре шага от «понятно» до «могу сам»</h2>
+    <p class="sub">Читать чужой код легко, и это обманывает: кажется, что ты его знаешь. Поэтому мы проверяем память, а не узнавание.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Разбор</h3>
+        <p>Задача и готовый ответ: класс с методами и короткое объяснение, что делает каждый.</p>
+        <div class="mini"><span class="k">def</span> <span class="f">predict</span>(<span class="sf">self</span>, X):
+    <span class="k">return</span> X @ <span class="sf">self</span>.w
+<span class="k">def</span> <span class="f">mse</span>(<span class="sf">self</span>, X, y):
+    ...</div>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>Копирование</h3>
+        <p>Код стоит бледным призраком. Ты печатаешь поверх: правильные символы загораются, ошибки краснеют.</p>
+        <div class="mini"><span class="k">def</span> <span class="f">predict</span>(<span class="sf">self</span>, X):
+    <span class="k">return</span> X <span class="gh">@ self.w</span>
+<span class="gh">def mse(self, X, y):
+    ...</span></div>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Метод исчезает</h3>
+        <p>Жмёшь «дальше», и самый маленький метод пропадает. На его месте пустое поле и курсор.</p>
+        <div class="mini"><span class="ph">вспомни метод</span><span class="caret"></span>
+
+<span class="k">def</span> <span class="f">mse</span>(<span class="sf">self</span>, X, y):
+    ...</div>
+      </div>
+      <div class="step">
+        <div class="num">04</div>
+        <h3>Вспоминание</h3>
+        <p>Пишешь по памяти. Проверка спокойно относится к пробелам и названиям переменных. Потом идут похожие задачи.</p>
+        <div class="mini"><span class="k">def</span> <span class="f">predict</span>(<span class="sf">self</span>, X):
+    <span class="k">return</span> X @ <span class="sf">self</span>.w
+<span style="color:var(--g2)">✓ точно, без подсказок</span></div>
+      </div>
+    </div>
+
+    <div class="ladder">
+      <div>
+        <h3>Лесенка исчезновения</h3>
+        <p>С каждым раундом пропадает ещё один метод. В финале остаётся только условие задачи, а класс ты пишешь целиком. Метод, который не вспомнился, вернётся в повторении раньше остальных.</p>
+      </div>
+      <div class="rows" id="ladder"></div>
+    </div>
+  </div>
+</section>
+
+<section id="science">
+  <div class="wrap">
+    <div class="eyebrow">наука</div>
+    <h2>Не магия, а то, что уже проверяли</h2>
+    <p class="sub">Мы не придумывали метод с нуля: взяли идеи из исследований обучения и применили их к коду.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>Вспоминание сильнее перечитывания</h3>
+        <p>Когда ты достаёшь знание из памяти сам, оно закрепляется лучше, чем при повторном чтении. Поэтому основной режим у нас: пустое поле и твои руки.</p>
+        <div class="src">retrieval practice</div>
+      </div>
+      <div class="card">
+        <h3>Исчезающие разобранные примеры</h3>
+        <p>Сначала полный пример, потом из него постепенно убирают шаги. Плавный переход к самостоятельной работе обычно работает лучше, чем резкий. Это изучали и на задачах по программированию.</p>
+        <div class="src">faded worked examples</div>
+      </div>
+      <div class="card">
+        <h3>Помощь по уровню</h3>
+        <p>Новичку нужен разбор, опытному он только мешает. В экспериментах убирание, подстроенное под человека, давало результат лучше фиксированного. Поэтому у нас есть пропуск копирования, подсказки и собственный темп.</p>
+        <div class="src">expertise reversal</div>
+      </div>
+      <div class="card">
+        <h3>Повторения с интервалами</h3>
+        <p>Если возвращаться к материалу всё реже, он держится дольше. Что вспомнил легко, придёт позже. Что забыл, вернётся скоро.</p>
+        <div class="src">spaced retrieval</div>
+      </div>
+    </div>
+    <div class="honest">
+      <b>Честно о границах</b>
+      <p>Убирание кода само по себе слабо помогает перенести навык на совсем другие задачи. Поэтому после копирования идут вариации: тот же паттерн, но другая функция потерь или другая метрика. А эффект интервальных повторений зависит от человека и материала, это не гарантия.</p>
+    </div>
+    <ul class="refs">
+      <li>Salden, Aleven, Schwonke, Renkl (2010), адаптивное убирание шагов: <a href="https://learntechlib.org/p/106349">learntechlib.org/p/106349</a></li>
+      <li>Spaced retrieval в вводных STEM-курсах (2024): <a href="https://link.springer.com/article/10.1186/s40594-024-00468-5">link.springer.com</a></li>
+      <li>Practicum, исчезающие примеры по программированию: <a href="https://www.cs.carleton.edu/cs_comps/2021/practicum/index.php">cs.carleton.edu</a></li>
+    </ul>
+  </div>
+</section>
+
+<section id="inside">
+  <div class="wrap inside">
+    <div>
+      <div class="eyebrow">что внутри</div>
+      <h2>Начинаем с кода, который встречается везде</h2>
+      <p class="sub" style="margin-bottom:32px">Цикл обучения, градиент, softmax, расстояния: эти куски повторяются из модели в модель. Выучишь один раз, узнаёшь везде.</p>
+      <ul class="list">
+        <li><code>LinearRegression</code><span>градиентный спуск, MSE</span></li>
+        <li><code>LogisticRegression</code><span>сигмоида, кросс-энтропия</span></li>
+        <li><code>SoftmaxRegression</code><span>несколько классов, one-hot</span></li>
+        <li><code>KMeans</code><span>кластеры, бродкастинг</span></li>
+        <li><code>KNN</code><span>расстояния, голосование</span></li>
+        <li><code>TwoLayerNet</code><span>forward, backprop на numpy</span></li>
+        <li><code>Ridge, WeightedKNN</code><span>вариации на те же паттерны</span></li>
+      </ul>
+      <p class="mono" style="margin-top:18px;font-size:13px;color:#6f7d6e">в планах: цикл обучения на PyTorch, дерево решений</p>
+    </div>
+    <div>
+      <div class="eyebrow">режимы</div>
+      <h2>Что можно делать</h2>
+      <div class="modes" style="margin-top:32px">
+        <div class="mode"><h4>Копирование</h4><p>Печатаешь поверх призрака, Enter сам ставит отступ.</p></div>
+        <div class="mode"><h4>Вспоминание по раундам</h4><p>Методы исчезают от маленького к большому, в конце весь класс.</p></div>
+        <div class="mode"><h4>Вопрос «зачем?»</h4><p>После каждого метода короткий вопрос, чтобы не заучивать вслепую.</p></div>
+        <div class="mode"><h4>Вариации</h4><p>Похожая задача с одним изменением: перенос, а не только память.</p></div>
+        <div class="mode"><h4>Повторение</h4><p>Карточки по интервалам. Прогресс хранится в браузере.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="band">
+      <div>
+        <h2>Попробуй за две минуты</h2>
+        <p>Выбери модель, перепиши её, а потом посмотри, что осталось в голове.</p>
+      </div>
+      <a class="btn" href="/">Открыть демо →</a>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="eyebrow">вопросы</div>
+    <h2>Коротко о главном</h2>
+    <div style="margin-top:40px">
+      <details><summary>Это же просто зубрёжка?</summary><p>Зубрёжка без понимания, да, была бы бесполезна. Поэтому после метода идёт вопрос «зачем здесь именно так?», а вариации заставляют менять код, а не повторять.</p></details>
+      <details><summary>Придётся печатать идеально?</summary><p>Нет. При копировании мы показываем ошибки сразу. При вспоминании проверка не придирается к пробелам и принимает другие имена переменных, если логика совпала. Если твой вариант правильный, но написан иначе, его можно засчитать вручную.</p></details>
+      <details><summary>Какой язык и какие темы?</summary><p>Сейчас Python и numpy, классические ML-модели. Дальше будут PyTorch и другие задачи.</p></details>
+      <details><summary>Нужна ли регистрация?</summary><p>В демо нет. Прогресс и карточки повторения хранятся в твоём браузере.</p></details>
+      <details><summary>Откуда уверенность, что работает?</summary><p>Её нет, есть опора на исследования. Мы собираем данные о том, что ты вспоминаешь и забываешь, чтобы подстраивать повторения. Обещаний «выучишь за неделю» не даём.</p></details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <img src="/static/logo-dark.svg" alt="Fadecode">
+    <span>© 2026 Fadecode</span>
+    <a href="/">Демо</a>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const SRC = [
+    "class LinearRegression:",
+    "    def __init__(self, lr=0.01):",
+    "        self.lr = lr",
+    "        self.w = None",
+    "",
+    "    def fit(self, X, y):",
+    "        self.w = np.zeros(X.shape[1])",
+    "        for _ in range(500):",
+    "            self.w -= self.lr * X.T @ (X @ self.w - y)",
+    "",
+    "    def predict(self, X):",
+    "        return X @ self.w"
+  ];
+  const METHODS = { init: [1, 3], fit: [5, 8], predict: [10, 11] };
+  const lineMethod = {};
+  Object.entries(METHODS).forEach(([m, [a, b]]) => { for (let i = a; i <= b; i++) lineMethod[i] = m; });
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const classes = line => {
+    const c = Array(line.length).fill("");
+    const re = /\b(class|def|for|in|return|None)\b|\b(self)\b|\b(\d+\.?\d*)\b|\b([A-Za-z_]\w*)(?=\()/g;
+    let m;
+    while ((m = re.exec(line))) {
+      const k = m[1] ? "k" : m[2] ? "sf" : m[3] ? "n" : "f";
+      for (let i = m.index; i < m.index + m[0].length; i++) c[i] = k;
+    }
+    const d = /\b(?:def|class)\s+(\w+)/.exec(line);
+    if (d) { const s = line.indexOf(d[1], d.index); for (let i = s; i < s + d[1].length; i++) c[i] = "f"; }
+    return c;
+  };
+  const CL = SRC.map(classes);
+  const run = (line, cl, from, to, ghost) => {
+    let h = "", i = from;
+    while (i < to) {
+      let j = i;
+      while (j < to && cl[j] === cl[i]) j++;
+      const t = esc(line.slice(i, j));
+      const c = (cl[i] || "") + (ghost ? " gh" : "");
+      h += c.trim() ? `<span class="${c.trim()}">${t}</span>` : t;
+      i = j;
+    }
+    return h;
+  };
+  const lineHTML = (i, k, ghost) => {
+    const l = SRC[i];
+    k = Math.max(0, Math.min(l.length, k));
+    return run(l, CL[i], 0, k, false) + (ghost ? run(l, CL[i], k, l.length, true) : "");
+  };
+  const starts = [];
+  let total = 0;
+  SRC.forEach(l => { starts.push(total); total += l.length + 1; });
+  const mLen = {}, mStart = {};
+  Object.entries(METHODS).forEach(([m, [a, b]]) => {
+    mStart[m] = starts[a];
+    mLen[m] = starts[b] + SRC[b].length - starts[a];
+  });
+  const st = { copy: 0, gone: new Set(), active: null, typed: 0 };
+  const codeEl = document.getElementById("code");
+  const capEl = document.getElementById("cap");
+  const rndEl = document.getElementById("rnd");
+
+  function draw() {
+    const out = [];
+    for (let i = 0; i < SRC.length; i++) {
+      const m = lineMethod[i];
+      if (m && st.gone.has(m)) {
+        if (m === st.active) {
+          out.push(lineHTML(i, st.typed - (starts[i] - mStart[m]), false));
+        } else if (i === METHODS[m][0]) {
+          out.push('    <span class="ph">вспомни метод</span><span class="caret"></span>');
+        } else out.push("");
+      } else {
+        out.push(lineHTML(i, st.copy - starts[i], st.copy < total));
+      }
+    }
+    if (st.active) {
+      const [a, b] = METHODS[st.active];
+      let last = a;
+      for (let i = a; i <= b; i++) if (st.typed - (starts[i] - mStart[st.active]) >= 0) last = i;
+      out[last] += '<span class="caret"></span>';
+    }
+    codeEl.innerHTML = out.join("\n");
+  }
+  const cap = (t, r) => { capEl.innerHTML = t; rndEl.textContent = r; };
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  async function type(m) {
+    st.active = m; st.typed = 0;
+    while (st.typed < mLen[m]) { st.typed++; draw(); await sleep(26); }
+    await sleep(500);
+    st.gone.delete(m); st.active = null; draw();
+  }
+  async function loop() {
+    while (true) {
+      st.gone.clear(); st.copy = 0; st.active = null;
+      cap("<b>Копирование.</b> Печатаешь поверх бледного кода", "раунд 0");
+      while (st.copy < total) { st.copy += 2; draw(); await sleep(22); }
+      st.copy = total; draw();
+      await sleep(900);
+      st.gone.add("predict"); draw();
+      cap("<b>Метод исчез.</b> Самый маленький: вспомни, что в нём было", "раунд 1");
+      await sleep(1400);
+      cap("<b>Вспоминаешь</b> и печатаешь по памяти", "раунд 1");
+      await type("predict");
+      cap("<b>Точно.</b> Без подсказок, метод вернулся", "раунд 1");
+      await sleep(1100);
+      st.gone.add("predict"); st.gone.add("init"); draw();
+      cap("<b>Пропало два метода.</b> С каждым раундом их больше", "раунд 2");
+      await sleep(1500);
+      cap("<b>Вспоминаешь</b> и печатаешь по памяти", "раунд 2");
+      await type("predict");
+      await type("init");
+      cap("<b>Раунд пройден.</b> Дальше пропадёт ещё метод", "раунд 2");
+      await sleep(2400);
+    }
+  }
+  if (reduced) {
+    st.copy = total; st.gone.add("predict"); draw();
+    cap("<b>Метод исчез.</b> Вспомни, что в нём было", "раунд 1");
+  } else loop();
+
+  const sizes = [34, 40, 52, 70];
+  const labels = ["разбор", "раунд 1", "раунд 2", "раунд 3", "финал"];
+  const ladder = document.getElementById("ladder");
+  ladder.innerHTML = labels.map((l, r) => {
+    const bars = sizes.map((_, i) => `<i class="${i < r ? "x" : ""}"></i>`).join("");
+    return `<div class="row${r === 4 ? " last" : ""}"><span>${l}</span><div class="bars">${r === 4 ? sizes.map(() => '<i class="x"></i>').join("") : bars}</div></div>`;
+  }).join("");
+})();
+</script>
+</body>
+</html>

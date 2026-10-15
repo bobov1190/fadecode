@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stepper %}
+{% block title %}Копирование · {{ L.title }}{% endblock %}
+{% block content %}
+{{ stepper("copy") }}
+<div id="copy-root" data-lesson="{{ L.id }}" data-next="{{ url_for('views.recall', lid=L.id) }}">
+  <div class="eyebrow">Копирование</div><h2>Печатай поверх призрака</h2>
+  <p class="muted">Верные символы загораются, ошибки краснеют. Enter сам ставит отступ.</p>
+  <div class="codebox"><div class="ed" id="edc"></div></div>
+  <div class="progress"><div class="bar"><i id="pbar"></i></div><span id="pinfo">0%</span></div>
+  <div class="actions">
+    <button class="btn p" id="copy-next" type="button" disabled>Дальше: пропадёт метод →</button>
+    <a class="btn g" href="{{ url_for('views.recall', lid=L.id) }}">Пропустить</a>
+  </div>
+</div>
+<script type="application/json" id="copy-target">{{ target|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson.js') }}"></script>
+{% endblock %}

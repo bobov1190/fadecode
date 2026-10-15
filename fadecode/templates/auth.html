@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ "Вход" if mode == "login" else "Регистрация" }} · Fadecode{% endblock %}
+{% block content %}
+<div class="auth">
+  <div class="eyebrow">{{ "вход" if mode == "login" else "новый аккаунт" }}</div>
+  <h1>{{ "С возвращением" if mode == "login" else "Создай аккаунт" }}</h1>
+  <p class="muted">Прогресс, повторения и журнал попыток хранятся на сервере и привязаны к аккаунту.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <label>Логин<input name="username" autocomplete="username" required minlength="3" maxlength="32" autofocus></label>
+    <label>Пароль<input name="password" type="password" autocomplete="{{ 'current-password' if mode == 'login' else 'new-password' }}" required minlength="{{ 1 if mode == 'login' else 6 }}"></label>
+    <button class="btn p" type="submit">{{ "Войти" if mode == "login" else "Зарегистрироваться" }}</button>
+  </form>
+  <p class="alt">
+    {% if mode == "login" %}Нет аккаунта? <a href="{{ url_for('auth.register') }}">Зарегистрироваться</a>
+    {% else %}Уже есть аккаунт? <a href="{{ url_for('auth.login') }}">Войти</a>{% endif %}
+    · <a href="{{ url_for('views.about') }}">О проекте</a>
+  </p>
+</div>
+{% endblock %}

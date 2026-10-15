@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<title>{% block title %}Fadecode{% endblock %}</title>
+<link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/extra.css') }}">
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="logo" href="{{ url_for('views.home') }}"><img src="{{ url_for('static', filename='logo-dark.svg') }}" alt="Fadecode"></a>
+  {% if g.user %}
+  <nav class="tabs">
+    <a class="tab{% if active == 'home' %} on{% endif %}" href="{{ url_for('views.home') }}">Уроки</a>
+    <a class="tab{% if active == 'review' %} on{% endif %}" href="{{ url_for('views.review') }}">Повторение{% if due_count %}<span class="badge">{{ due_count }}</span>{% endif %}</a>
+    <a class="tab{% if active == 'stats' %} on{% endif %}" href="{{ url_for('views.stats') }}">Прогресс</a>
+  </nav>
+  {% endif %}
+  <div class="userbox">
+    <a class="site" href="{{ url_for('views.about') }}">О проекте</a>
+    {% if g.user %}
+    <span class="who">{{ g.user.username }}</span>
+    <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linkbtn" type="submit">Выйти</button></form>
+    {% endif %}
+  </div>
+</div></header>
+<main id="app">
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+  <div class="flash {{ category }}">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+{% if g.user and ai_lesson %}{% include "partials/ai_panel.html" %}{% endif %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ai.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import listing %}
+{% block title %}Повторение · Fadecode{% endblock %}
+{% block content %}
+<div class="eyebrow">Повторение · {{ progress }}</div><h2>{{ L.title }}</h2>
+<div class="task"><div class="eyebrow">Задача</div><p>{{ L.task }}</p></div>
+<div class="codebox" id="listing" data-lesson="{{ L.id }}" data-mode="review">{{ listing(L, [bid], false) }}</div>
+<form class="actions" method="post" action="{{ url_for('views.review_next') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn p" id="review-next" type="submit" disabled>Дальше →</button>
+</form>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lesson.js') }}"></script>
+{% endblock %}

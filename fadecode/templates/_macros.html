@@ -1,0 +1,46 @@
+{# Общие кусочки интерфейса #}
+
+{% macro stepper(cur) %}
+{% set keys = ['read', 'copy', 'recall'] %}
+{% set labels = ['1 Разбор', '2 Копирование', '3 Вспоминание'] %}
+{% set idx = keys.index(cur) %}
+<div class="steps">
+  {% for label in labels %}<span class="st{% if loop.index0 == idx %} on{% elif loop.index0 < idx %} done{% endif %}">{{ label }}</span>{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro slot(L, id, whole=false, label="") %}
+<div class="slot{% if whole %} whole{% endif %}" data-block="{{ id }}" data-rows="{{ slot_rows(L, id) }}">
+  <div class="slot-head"><span>{% if whole %}ВЕСЬ КЛАСС ПО ПАМЯТИ{% else %}{{ label or "ПРОПАЛ МЕТОД" }}{% endif %}</span><span class="hc"></span></div>
+  <div class="ed"></div><div class="hint"></div>
+  <div class="slot-actions">
+    <button class="btn p s" type="button" data-act="check">Проверить<kbd>Ctrl+Enter</kbd></button>
+    <button class="btn s" type="button" data-act="hint">Подсказка</button>
+    <button class="btn s g" type="button" data-act="reveal">Показать ответ</button>
+  </div>
+  <div class="out"></div>
+</div>
+{% endmacro %}
+
+{# Листинг класса: целые методы показаны, пропавшие заменены полем ввода #}
+{% macro listing(L, missing, whole=false) %}
+<pre class="code">{{ L.imports|highlight }}</pre><div class="gap"></div>
+{% if whole %}
+{{ slot(L, "whole", true) }}
+{% else %}
+<pre class="code">{{ L.cls|highlight }}</pre>
+{% for b in L.blocks %}
+{% if b.id in missing %}
+{% if missing|length > 1 %}
+{% set lab = "НОВЫЙ ПРОПАВШИЙ МЕТОД" if missing[-1] == b.id else "ПРОПАЛ РАНЬШЕ, ВСПОМНИ СНОВА" %}
+{% else %}
+{% set lab = "ПРОПАЛ МЕТОД" %}
+{% endif %}
+{{ slot(L, b.id, false, lab) }}
+{% else %}
+<pre class="code">{{ indent(b.code)|highlight }}</pre>
+{% endif %}
+<div class="gap"></div>
+{% endfor %}
+{% endif %}
+{% endmacro %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Повторение · Fadecode{% endblock %}
+{% block content %}
+<div class="empty">
+  {% if finished %}
+  <h2>Готово</h2>
+  <p>Повторено карточек: {{ finished }}.</p>
+  <div class="actions" style="justify-content:center"><a class="btn p" href="{{ url_for('views.home') }}">К урокам</a></div>
+  {% else %}
+  <h2>Пока нечего повторять</h2>
+  <p>{% if next_due %}Ближайшая карточка будет готова {{ next_due|ru_date }}.{% else %}Пройди хотя бы один урок, и методы появятся здесь.{% endif %}</p>
+  <div class="actions" style="justify-content:center">
+    {% if has_cards %}
+    <form method="post" action="{{ url_for('views.review_all') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn" type="submit">Повторить всё изученное сейчас</button></form>
+    {% else %}
+    <a class="btn p" href="{{ url_for('views.home') }}">К урокам</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
