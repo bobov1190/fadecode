@@ -799,5 +799,483 @@
     }
    }
   ]
+ },
+ {
+  "id": "bs_template",
+  "title": "Бинарный поиск: шаблоны",
+  "tag": "бинарный поиск · шаблон · LeetCode 704",
+  "desc": "Классический поиск, lower_bound и upper_bound.",
+  "task": "Реализуй три основных шаблона бинарного поиска по отсортированному массиву: классический поиск индекса (LeetCode 704), lower_bound и upper_bound. Эти заготовки пригодятся почти в каждой задаче на бинарный поиск.\nПример: nums = [-1, 0, 3, 5, 9, 12], target = 9 → search вернёт 4.\nПример: nums = [1, 2, 2, 2, 3], target = 2 → lower_bound вернёт 1, upper_bound вернёт 4.\nСложность: O(log n) по времени, O(1) по памяти.",
+  "imports": "from typing import List",
+  "cls": "class BinarySearch:",
+  "blocks": [
+   {
+    "id": "search",
+    "name": "search",
+    "note": "Классика: ищет индекс target на закрытом отрезке [left, right] или возвращает -1.",
+    "code": "def search(self, nums: List[int], target: int) -> int:\n    left, right = 0, len(nums) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1",
+    "why": {
+     "q": "Почему цикл идёт, пока left <= right, а не left < right?",
+     "opts": [
+      "Отрезок [left, right] закрытый: при left == right в нём ещё остаётся один непроверенный элемент",
+      "Так цикл выполняется быстрее",
+      "Иначе mid может выйти за границы массива"
+     ],
+     "ok": 0,
+     "exp": "Оба конца отрезка входят в поиск. Когда left и right совпали, остался ровно один кандидат, и его нужно проверить. Если остановиться раньше, пропустится ответ в последней позиции."
+    }
+   },
+   {
+    "id": "lower_bound",
+    "name": "lower_bound",
+    "note": "Первая позиция, где значение >= target. Если такого нет, вернёт len(nums).",
+    "code": "def lower_bound(self, nums: List[int], target: int) -> int:\n    left, right = 0, len(nums)\n    while left < right:\n        mid = (left + right) // 2\n        if nums[mid] < target:\n            left = mid + 1\n        else:\n            right = mid\n    return left",
+    "why": {
+     "q": "Почему здесь right = len(nums), а не len(nums) - 1?",
+     "opts": [
+      "Ответом может быть позиция сразу за последним элементом, и отрезок должен её включать",
+      "Чтобы mid никогда не равнялся нулю",
+      "Так цикл завершается за меньшее число шагов"
+     ],
+     "ok": 0,
+     "exp": "Отрезок здесь полуоткрытый: [left, right). Если все элементы меньше target, правильный ответ это len(nums), «позиция после конца». Поэтому right стартует с len(nums)."
+    }
+   },
+   {
+    "id": "upper_bound",
+    "name": "upper_bound",
+    "note": "Первая позиция, где значение строго больше target.",
+    "code": "def upper_bound(self, nums: List[int], target: int) -> int:\n    left, right = 0, len(nums)\n    while left < right:\n        mid = (left + right) // 2\n        if nums[mid] <= target:\n            left = mid + 1\n        else:\n            right = mid\n    return left",
+    "why": {
+     "q": "Чем upper_bound отличается от lower_bound в коде?",
+     "opts": [
+      "Условием сдвига left: nums[mid] <= target вместо nums[mid] < target",
+      "Начальным значением right",
+      "Тем, что вместо right = mid пишется right = mid - 1"
+     ],
+     "ok": 0,
+     "exp": "Всё остальное совпадает. lower_bound пропускает только элементы меньше target, а upper_bound пропускает и равные ему, поэтому останавливается за последним вхождением."
+    }
+   }
+  ]
+ },
+ {
+  "id": "bs_range",
+  "title": "Первая и последняя позиции элемента",
+  "tag": "бинарный поиск · LeetCode 34 · Medium",
+  "desc": "Две границы одним шаблоном с флагом.",
+  "task": "Дан отсортированный по возрастанию массив nums и число target. Найди индексы первого и последнего вхождения target. Если числа в массиве нет, верни [-1, -1]. Нужно решение за O(log n).\nПример: nums = [5, 7, 7, 8, 8, 10], target = 8 → [3, 4].\nПример: nums = [5, 7, 7, 8, 8, 10], target = 6 → [-1, -1].\nСложность: O(log n) по времени, O(1) по памяти.",
+  "imports": "from typing import List",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "bound",
+    "name": "bound",
+    "note": "Одна функция для обеих границ: strict=False даёт lower_bound, strict=True даёт upper_bound.",
+    "code": "def bound(self, nums: List[int], target: int, strict: bool) -> int:\n    left, right = 0, len(nums)\n    while left < right:\n        mid = (left + right) // 2\n        if nums[mid] < target or (strict and nums[mid] == target):\n            left = mid + 1\n        else:\n            right = mid\n    return left",
+    "why": {
+     "q": "Зачем один метод с флагом strict вместо двух отдельных функций?",
+     "opts": [
+      "Левая и правая границы отличаются одним условием, остальной код общий",
+      "С флагом бинарный поиск работает быстрее",
+      "Для правой границы нужен другой алгоритм, а флаг его включает"
+     ],
+     "ok": 0,
+     "exp": "Алгоритм один и тот же. Единственная разница: пропускать ли элементы, равные target. Это и переключает флаг, а дублировать цикл незачем."
+    }
+   },
+   {
+    "id": "searchRange",
+    "name": "searchRange",
+    "note": "Находит обе границы и проверяет, что target вообще есть в массиве.",
+    "code": "def searchRange(self, nums: List[int], target: int) -> List[int]:\n    first = self.bound(nums, target, False)\n    last = self.bound(nums, target, True) - 1\n    if first <= last:\n        return [first, last]\n    return [-1, -1]",
+    "why": {
+     "q": "Почему последняя позиция считается как bound(..., True) - 1?",
+     "opts": [
+      "bound со strict=True возвращает позицию сразу после последнего target, поэтому нужно отступить на шаг",
+      "Индексы в Python начинаются с нуля, поэтому всегда вычитаем 1",
+      "Так мы защищаемся от выхода за границы массива"
+     ],
+     "ok": 0,
+     "exp": "upper_bound указывает на первый элемент больше target, то есть за последнее вхождение. Если target нет, first окажется больше last, и условие first <= last вернёт [-1, -1]."
+    }
+   }
+  ]
+ },
+ {
+  "id": "bs_koko",
+  "title": "Коко и бананы: поиск по ответу",
+  "tag": "бинарный поиск по ответу · LeetCode 875 · Medium",
+  "desc": "Бинарный поиск по значению скорости, а не по индексу.",
+  "task": "Коко любит бананы. Есть кучи piles[i] бананов, охранники вернутся через h часов. За час Коко выбирает одну кучу и съедает из неё k бананов (если в куче меньше k, съедает всю кучу и до конца часа больше не ест). Найди минимальное целое k, при котором она успеет съесть все бананы за h часов.\nПример: piles = [3, 6, 7, 11], h = 8 → 4.\nПример: piles = [30, 11, 23, 4, 20], h = 5 → 30.\nСложность: O(n log m) по времени, где m = max(piles); O(1) по памяти.",
+  "imports": "from typing import List",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "hours_needed",
+    "name": "hours_needed",
+    "note": "Сколько часов уйдёт на все кучи при заданной скорости.",
+    "code": "def hours_needed(self, piles: List[int], speed: int) -> int:\n    return sum((pile + speed - 1) // speed for pile in piles)",
+    "why": {
+     "q": "Зачем писать (pile + speed - 1) // speed?",
+     "opts": [
+      "Это целочисленное деление с округлением вверх: недоеденная куча всё равно занимает целый час",
+      "Так деление выполняется быстрее обычного",
+      "Чтобы избежать деления на ноль"
+     ],
+     "ok": 0,
+     "exp": "Обычное // округляет вниз, а часов нужно столько, сколько потребуется на остаток тоже. Добавка speed - 1 превращает округление вниз в округление вверх."
+    }
+   },
+   {
+    "id": "minEatingSpeed",
+    "name": "minEatingSpeed",
+    "note": "Ищет наименьшую скорость, при которой hours_needed <= h.",
+    "code": "def minEatingSpeed(self, piles: List[int], h: int) -> int:\n    left, right = 1, max(piles)\n    while left < right:\n        mid = (left + right) // 2\n        if self.hours_needed(piles, mid) <= h:\n            right = mid\n        else:\n            left = mid + 1\n    return left",
+    "why": {
+     "q": "Почему при hours_needed <= h мы пишем right = mid, а не mid - 1?",
+     "opts": [
+      "mid уже подходит и может оказаться минимальным подходящим, выбрасывать его нельзя",
+      "Иначе цикл станет бесконечным при нечётной длине отрезка",
+      "Чтобы скорость всегда оставалась чётной"
+     ],
+     "ok": 0,
+     "exp": "Мы ищем первую подходящую скорость. Если mid подходит, ответ либо он сам, либо меньше. Поэтому правую границу ставим в mid, а не мимо него."
+    }
+   }
+  ]
+ },
+ {
+  "id": "bs_rotated",
+  "title": "Поиск в повёрнутом массиве",
+  "tag": "бинарный поиск · LeetCode 33 · Medium",
+  "desc": "Находим точку разворота, затем ищем в нужной половине.",
+  "task": "Отсортированный по возрастанию массив с уникальными значениями был циклически сдвинут (например, [0, 1, 2, 4, 5, 6, 7] превратился в [4, 5, 6, 7, 0, 1, 2]). Найди индекс target или верни -1. Нужно решение за O(log n).\nПример: nums = [4, 5, 6, 7, 0, 1, 2], target = 0 → 4.\nПример: nums = [4, 5, 6, 7, 0, 1, 2], target = 3 → -1.\nСложность: O(log n) по времени, O(1) по памяти.",
+  "imports": "from typing import List",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "find_min_index",
+    "name": "find_min_index",
+    "note": "Индекс минимального элемента, то есть точка, где массив «сломан».",
+    "code": "def find_min_index(self, nums: List[int]) -> int:\n    left, right = 0, len(nums) - 1\n    while left < right:\n        mid = (left + right) // 2\n        if nums[mid] > nums[right]:\n            left = mid + 1\n        else:\n            right = mid\n    return left",
+    "why": {
+     "q": "Почему mid сравнивают именно с nums[right]?",
+     "opts": [
+      "Если nums[mid] больше nums[right], минимум точно правее mid; иначе он в mid или левее",
+      "Потому что правый элемент всегда самый большой",
+      "Сравнение с nums[left] не работает ни в каком случае"
+     ],
+     "ok": 0,
+     "exp": "В повёрнутом массиве значение посередине больше правого края только тогда, когда разрыв лежит справа от mid. В остальных случаях правая часть отсортирована и минимум не дальше mid."
+    }
+   },
+   {
+    "id": "bsearch",
+    "name": "bsearch",
+    "note": "Обычный бинарный поиск, но только на отрезке [left, right].",
+    "code": "def bsearch(self, nums: List[int], target: int, left: int, right: int) -> int:\n    while left <= right:\n        mid = (left + right) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1",
+    "why": {
+     "q": "Зачем bsearch принимает границы left и right параметрами?",
+     "opts": [
+      "Чтобы искать только в одной из двух отсортированных половин массива",
+      "Чтобы функцию можно было вызвать рекурсивно",
+      "Так Python быстрее работает с аргументами"
+     ],
+     "ok": 0,
+     "exp": "После поиска разворота массив состоит из двух отсортированных кусков. Обычный поиск работает на каждом из них, нужно лишь указать, на каком."
+    }
+   },
+   {
+    "id": "search",
+    "name": "search",
+    "note": "Определяет, в какой половине лежит target, и ищет там.",
+    "code": "def search(self, nums: List[int], target: int) -> int:\n    pivot = self.find_min_index(nums)\n    if nums[pivot] <= target <= nums[-1]:\n        return self.bsearch(nums, target, pivot, len(nums) - 1)\n    return self.bsearch(nums, target, 0, pivot - 1)",
+    "why": {
+     "q": "Как понять, что target лежит в правой половине (начиная с минимума)?",
+     "opts": [
+      "Он находится между минимумом и последним элементом массива",
+      "Он больше первого элемента массива",
+      "Он чётный"
+     ],
+     "ok": 0,
+     "exp": "Правая половина идёт от минимума до последнего элемента и отсортирована. Если target не попадает в этот диапазон, остаётся только левая половина."
+    }
+   }
+  ]
+ },
+ {
+  "id": "bs_matrix",
+  "title": "Поиск в матрице",
+  "tag": "бинарный поиск · LeetCode 74 · Medium",
+  "desc": "Матрица как один длинный отсортированный массив.",
+  "task": "Матрица m × n обладает свойствами: числа в каждой строке отсортированы по возрастанию, а первое число строки больше последнего числа предыдущей строки. Верни True, если target есть в матрице. Нужно решение за O(log(m · n)).\nПример: matrix = [[1, 3, 5, 7], [10, 11, 16, 20], [23, 30, 34, 60]], target = 3 → True.\nПример: тот же matrix, target = 13 → False.\nСложность: O(log(m · n)) по времени, O(1) по памяти.",
+  "imports": "from typing import List",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "value_at",
+    "name": "value_at",
+    "note": "Достаёт элемент по сквозному номеру, как будто матрица вытянута в одну строку.",
+    "code": "def value_at(self, matrix: List[List[int]], idx: int) -> int:\n    cols = len(matrix[0])\n    return matrix[idx // cols][idx % cols]",
+    "why": {
+     "q": "Как по сквозному номеру idx найти строку и столбец?",
+     "opts": [
+      "Строка = idx // cols, столбец = idx % cols",
+      "Строка = idx % cols, столбец = idx // cols",
+      "Строка = idx, столбец = 0"
+     ],
+     "ok": 0,
+     "exp": "Целое деление на число столбцов говорит, сколько полных строк уже прошло, а остаток это позиция внутри строки."
+    }
+   },
+   {
+    "id": "searchMatrix",
+    "name": "searchMatrix",
+    "note": "Обычный бинарный поиск по номерам от 0 до m · n - 1.",
+    "code": "def searchMatrix(self, matrix: List[List[int]], target: int) -> bool:\n    left, right = 0, len(matrix) * len(matrix[0]) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        value = self.value_at(matrix, mid)\n        if value == target:\n            return True\n        if value < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return False",
+    "why": {
+     "q": "Почему по матрице можно искать бинарным поиском целиком?",
+     "opts": [
+      "Если выписать строки одну за другой, получится один отсортированный массив",
+      "Потому что матрица всегда квадратная",
+      "Потому что в каждом столбце числа тоже отсортированы по убыванию"
+     ],
+     "ok": 0,
+     "exp": "Каждая строка отсортирована, а следующая начинается с большего числа, чем кончилась предыдущая. Значит, сквозная последовательность возрастает, и подходит обычный поиск."
+    }
+   }
+  ]
+ },
+ {
+  "id": "tp_template",
+  "title": "Два указателя: шаблоны",
+  "tag": "два указателя · шаблон · LeetCode 125, 167, 26",
+  "desc": "Указатели навстречу друг другу и быстрый с медленным.",
+  "task": "Три классических приёма с двумя указателями: проверка палиндрома (указатели идут навстречу, LeetCode 125), поиск пары с заданной суммой в отсортированном массиве (LeetCode 167) и удаление дубликатов на месте (быстрый и медленный указатель, LeetCode 26).\nПример: is_palindrome(\"A man, a plan, a canal: Panama\") → True.\nПример: two_sum_sorted([2, 7, 11, 15], 9) → [1, 2] (индексы с единицы).\nПример: remove_duplicates([1, 1, 2]) → 2, начало массива становится [1, 2].\nСложность: O(n) по времени, O(1) по памяти.",
+  "imports": "from typing import List",
+  "cls": "class TwoPointers:",
+  "blocks": [
+   {
+    "id": "is_palindrome",
+    "name": "is_palindrome",
+    "note": "Сравнивает буквы и цифры с двух концов, пропуская всё остальное.",
+    "code": "def is_palindrome(self, s: str) -> bool:\n    left, right = 0, len(s) - 1\n    while left < right:\n        while left < right and not s[left].isalnum():\n            left += 1\n        while left < right and not s[right].isalnum():\n            right -= 1\n        if s[left].lower() != s[right].lower():\n            return False\n        left += 1\n        right -= 1\n    return True",
+    "why": {
+     "q": "Почему указатели идут навстречу друг другу?",
+     "opts": [
+      "Палиндром симметричен: первый символ совпадает с последним, второй с предпоследним и так далее",
+      "Так строка обрабатывается быстрее, чем слева направо",
+      "Это нужно, чтобы не проверять регистр"
+     ],
+     "ok": 0,
+     "exp": "Каждая пара символов, равноудалённых от концов, должна совпасть. Двигая оба указателя к центру, мы проверяем ровно эти пары, и хватает одного прохода."
+    }
+   },
+   {
+    "id": "two_sum_sorted",
+    "name": "two_sum_sorted",
+    "note": "По сумме решает, какой указатель сдвинуть. Индексы в ответе с единицы.",
+    "code": "def two_sum_sorted(self, numbers: List[int], target: int) -> List[int]:\n    left, right = 0, len(numbers) - 1\n    while left < right:\n        total = numbers[left] + numbers[right]\n        if total == target:\n            return [left + 1, right + 1]\n        if total < target:\n            left += 1\n        else:\n            right -= 1\n    return []",
+    "why": {
+     "q": "Почему при total < target мы сдвигаем left вправо?",
+     "opts": [
+      "Массив отсортирован: сдвиг left увеличивает сумму, а сдвиг right её только уменьшил бы",
+      "Потому что left всегда указывает на меньшее число",
+      "Чтобы не выйти за границы массива"
+     ],
+     "ok": 0,
+     "exp": "Сумма слишком мала, значит нужно взять число побольше. Единственный способ при отсортированном массиве: передвинуть левый указатель на следующий, больший элемент."
+    }
+   },
+   {
+    "id": "remove_duplicates",
+    "name": "remove_duplicates",
+    "note": "Быстрый указатель ищет новые значения, медленный отмечает, куда их записать.",
+    "code": "def remove_duplicates(self, nums: List[int]) -> int:\n    if not nums:\n        return 0\n    slow = 0\n    for fast in range(1, len(nums)):\n        if nums[fast] != nums[slow]:\n            slow += 1\n            nums[slow] = nums[fast]\n    return slow + 1",
+    "why": {
+     "q": "Что означают slow и fast в этой функции?",
+     "opts": [
+      "slow хранит позицию последнего уникального элемента, fast просматривает массив в поисках нового значения",
+      "slow идёт с конца массива, fast с начала",
+      "slow считает дубликаты, fast считает уникальные элементы"
+     ],
+     "ok": 0,
+     "exp": "Всё левее slow включительно уже очищено от дубликатов. Когда fast находит значение, отличное от nums[slow], его записывают на следующую позицию и двигают slow."
+    }
+   }
+  ]
+ },
+ {
+  "id": "tp_3sum",
+  "title": "Три числа с нулевой суммой",
+  "tag": "два указателя · LeetCode 15 · Medium",
+  "desc": "Сортировка, фиксируем первое число, остальные ищем двумя указателями.",
+  "task": "Дан массив чисел nums. Верни все уникальные тройки [a, b, c], для которых a + b + c = 0. Одна и та же тройка не должна повторяться в ответе.\nПример: nums = [-1, 0, 1, 2, -1, -4] → [[-1, -1, 2], [-1, 0, 1]].\nПример: nums = [0, 0, 0] → [[0, 0, 0]].\nСложность: O(n²) по времени, O(1) дополнительной памяти (не считая ответа).",
+  "imports": "from typing import List",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "two_sum_range",
+    "name": "two_sum_range",
+    "note": "Ищет пары правее start, которые вместе с first дают ноль, и записывает тройки в result.",
+    "code": "def two_sum_range(self, nums: List[int], start: int, first: int, result: List[List[int]]) -> None:\n    left, right = start, len(nums) - 1\n    while left < right:\n        total = first + nums[left] + nums[right]\n        if total < 0:\n            left += 1\n        elif total > 0:\n            right -= 1\n        else:\n            result.append([first, nums[left], nums[right]])\n            left += 1\n            while left < right and nums[left] == nums[left - 1]:\n                left += 1",
+    "why": {
+     "q": "Зачем после найденной тройки пропускать равные элементы слева?",
+     "opts": [
+      "Иначе та же тройка попадёт в ответ несколько раз",
+      "Чтобы указатели не пересеклись",
+      "Чтобы массив остался отсортированным"
+     ],
+     "ok": 0,
+     "exp": "Если следующий left равен прежнему, пара с тем же right даст ту же самую тройку. Пропуск равных гарантирует, что каждая тройка встретится один раз."
+    }
+   },
+   {
+    "id": "threeSum",
+    "name": "threeSum",
+    "note": "Сортирует массив и по очереди фиксирует первое число тройки.",
+    "code": "def threeSum(self, nums: List[int]) -> List[List[int]]:\n    nums.sort()\n    result = []\n    for i in range(len(nums) - 2):\n        if nums[i] > 0:\n            break\n        if i > 0 and nums[i] == nums[i - 1]:\n            continue\n        self.two_sum_range(nums, i + 1, nums[i], result)\n    return result",
+    "why": {
+     "q": "Зачем сначала сортировать массив?",
+     "opts": [
+      "Отсортированный массив позволяет искать пару двумя указателями и легко пропускать дубликаты",
+      "Без сортировки не работает цикл for",
+      "Чтобы ответ получился в случайном порядке"
+     ],
+     "ok": 0,
+     "exp": "После сортировки по сумме видно, какой указатель двигать, а одинаковые числа стоят рядом, и их удобно пропускать. Сортировка стоит O(n log n), что дешевле основного O(n²)."
+    }
+   }
+  ]
+ },
+ {
+  "id": "tp_water",
+  "title": "Контейнер с наибольшим количеством воды",
+  "tag": "два указателя · LeetCode 11 · Medium",
+  "desc": "Жадно сужаем окно, двигая более низкую стенку.",
+  "task": "Дан массив height: height[i] это высота вертикальной линии в позиции i. Выбери две линии так, чтобы вместе с осью X они вмещали больше всего воды. Верни максимальный объём.\nПример: height = [1, 8, 6, 2, 5, 4, 8, 3, 7] → 49.\nПример: height = [1, 1] → 1.\nСложность: O(n) по времени, O(1) по памяти.",
+  "imports": "from typing import List",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "area",
+    "name": "area",
+    "note": "Объём воды между линиями left и right.",
+    "code": "def area(self, height: List[int], left: int, right: int) -> int:\n    return (right - left) * min(height[left], height[right])",
+    "why": {
+     "q": "От чего зависит объём воды между двумя линиями?",
+     "opts": [
+      "От расстояния между ними и от более низкой из двух линий",
+      "От суммы высот обеих линий",
+      "Только от более высокой линии"
+     ],
+     "ok": 0,
+     "exp": "Вода доходит до уровня низкой стенки, иначе перельётся. Площадь это ширина (right - left) на высоту min(...)."
+    }
+   },
+   {
+    "id": "maxArea",
+    "name": "maxArea",
+    "note": "Начинает с самой широкой пары и двигает указатель с более низкой стенкой.",
+    "code": "def maxArea(self, height: List[int]) -> int:\n    left, right = 0, len(height) - 1\n    best = 0\n    while left < right:\n        best = max(best, self.area(height, left, right))\n        if height[left] < height[right]:\n            left += 1\n        else:\n            right -= 1\n    return best",
+    "why": {
+     "q": "Почему двигаем именно указатель с более низкой линией?",
+     "opts": [
+      "Двигая более высокую, мы сужаем ширину, а высота всё равно ограничена низкой линией, так что лучше стать не может",
+      "Низкую линию всё равно нельзя использовать в ответе",
+      "Так указатели встретятся быстрее"
+     ],
+     "ok": 0,
+     "exp": "Текущая пара ограничена низкой стенкой. Любая пара с ней и более узким окном будет не лучше. Поэтому шанс улучшить результат есть только после замены низкой стенки."
+    }
+   }
+  ]
+ },
+ {
+  "id": "tp_trap",
+  "title": "Дождевая вода между столбиками",
+  "tag": "два указателя · LeetCode 42 · Hard",
+  "desc": "От массивов максимумов к двум указателям.",
+  "task": "Дан массив height: ширина каждого столбика равна 1, высота height[i]. Посчитай, сколько единиц воды удержится между столбиками после дождя. Сначала реши через массивы максимумов (O(n) памяти), затем через два указателя (O(1) памяти).\nПример: height = [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1] → 6.\nПример: height = [4, 2, 0, 3, 2, 5] → 9.\nСложность: O(n) по времени; trap_prefix занимает O(n) памяти, trap занимает O(1).",
+  "imports": "from typing import List",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "trap_prefix",
+    "name": "trap_prefix",
+    "note": "Простое решение: для каждого столбика считаем максимум слева и максимум справа.",
+    "code": "def trap_prefix(self, height: List[int]) -> int:\n    if not height:\n        return 0\n    n = len(height)\n    left_max, right_max = [height[0]] * n, [height[-1]] * n\n    for i in range(1, n):\n        left_max[i] = max(left_max[i - 1], height[i])\n    for i in range(n - 2, -1, -1):\n        right_max[i] = max(right_max[i + 1], height[i])\n    return sum(min(left_max[i], right_max[i]) - height[i] for i in range(n))",
+    "why": {
+     "q": "Сколько воды стоит над столбиком i?",
+     "opts": [
+      "min(максимум слева, максимум справа) минус высота самого столбика",
+      "Максимум слева плюс максимум справа",
+      "Высота самого высокого столбика минус высота i-го"
+     ],
+     "ok": 0,
+     "exp": "Вода держится до уровня более низкой из двух стенок по бокам. Остаётся вычесть то, что занимает сам столбик."
+    }
+   },
+   {
+    "id": "trap",
+    "name": "trap",
+    "note": "Оптимальное решение: два указателя и два текущих максимума вместо массивов.",
+    "code": "def trap(self, height: List[int]) -> int:\n    left, right = 0, len(height) - 1\n    left_max = right_max = 0\n    water = 0\n    while left < right:\n        if height[left] < height[right]:\n            left_max = max(left_max, height[left])\n            water += left_max - height[left]\n            left += 1\n        else:\n            right_max = max(right_max, height[right])\n            water += right_max - height[right]\n            right -= 1\n    return water",
+    "why": {
+     "q": "Почему можно считать воду над левым столбиком, не зная максимума справа?",
+     "opts": [
+      "Если height[left] < height[right], справа точно есть стенка не ниже, и уровень определяет только left_max",
+      "Потому что вода всегда стекает влево",
+      "Потому что правый максимум всегда равен нулю"
+     ],
+     "ok": 0,
+     "exp": "Из двух сторон обрабатываем ту, где столбик ниже. Тогда другая сторона заведомо не ниже, и она не будет «узким местом». Значит, достаточно максимума с обрабатываемой стороны."
+    }
+   }
+  ]
+ },
+ {
+  "id": "tp_cycle",
+  "title": "Начало цикла в связном списке",
+  "tag": "быстрый и медленный указатель · LeetCode 142 · Medium",
+  "desc": "Алгоритм Флойда: точка встречи, затем вход в цикл.",
+  "task": "Дан head односвязного списка. Верни узел, с которого начинается цикл, или None, если цикла нет. Список менять нельзя, множество посещённых узлов использовать не нужно.\nПример: список 3 → 2 → 0 → -4, где последний узел указывает на второй. Ответ: узел со значением 2.\nПример: список 1 → 2 без цикла. Ответ: None.\nСложность: O(n) по времени, O(1) по памяти.",
+  "imports": "from typing import Optional\n\n\nclass ListNode:\n    def __init__(self, x):\n        self.val = x\n        self.next = None",
+  "cls": "class Solution:",
+  "blocks": [
+   {
+    "id": "meeting_point",
+    "name": "meeting_point",
+    "note": "Медленный указатель делает шаг, быстрый два. Если есть цикл, они встретятся внутри него.",
+    "code": "def meeting_point(self, head: Optional[ListNode]) -> Optional[ListNode]:\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow is fast:\n            return slow\n    return None",
+    "why": {
+     "q": "Почему быстрый указатель обязательно встретит медленный, если цикл есть?",
+     "opts": [
+      "Внутри цикла он каждый шаг сокращает расстояние до медленного на единицу, так что рано или поздно догонит",
+      "Потому что оба указателя идут с одинаковой скоростью",
+      "Потому что быстрый указатель возвращается в начало списка"
+     ],
+     "ok": 0,
+     "exp": "Скорости различаются на один узел за шаг, поэтому расстояние между указателями внутри цикла уменьшается на один и не может перепрыгнуть через ноль."
+    }
+   },
+   {
+    "id": "detectCycle",
+    "name": "detectCycle",
+    "note": "Один указатель стартует с head, другой с точки встречи, и оба идут по одному шагу.",
+    "code": "def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:\n    meet = self.meeting_point(head)\n    if meet is None:\n        return None\n    start = head\n    while start is not meet:\n        start = start.next\n        meet = meet.next\n    return start",
+    "why": {
+     "q": "Почему указатели, идущие с head и с точки встречи, сойдутся именно в начале цикла?",
+     "opts": [
+      "Путь от head до входа в цикл равен пути от точки встречи до входа плюс целое число кругов",
+      "Потому что точка встречи всегда совпадает с началом цикла",
+      "Потому что цикл всегда начинается во втором узле"
+     ],
+     "ok": 0,
+     "exp": "К моменту встречи быстрый прошёл вдвое больше медленного. Из этого равенства следует, что расстояния до входа в цикл с head и с точки встречи отличаются на целое число кругов."
+    }
+   }
+  ]
  }
 ]
