@@ -457,3 +457,18 @@ class AITests(AppCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------- healthz ----------
+
+class HealthTests(AppCase):
+    def test_ok_without_login(self):
+        r = self.c.get("/healthz")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.get_json()["status"], "ok")
+
+    def test_503_when_db_down(self):
+        with mock.patch("fadecode.time.sleep"), mock.patch.object(db, "get_db", side_effect=RuntimeError("boom")):
+            r = self.c.get("/healthz")
+        self.assertEqual(r.status_code, 503)
+        self.assertEqual(r.get_json()["status"], "db_down")

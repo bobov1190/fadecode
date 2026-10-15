@@ -196,11 +196,22 @@ def _make_pool(app):
         app.config["DATABASE_URL"],
         min_size=1,
         max_size=app.config.get("DB_POOL_MAX", 5),
-        timeout=30,
-        # prepare_threshold=None: совместимо с pgbouncer-пулером Neon
-        kwargs={"row_factory": dict_row, "prepare_threshold": None},
+        timeout=20,
+        max_idle=30,  # простаивающие соединения закрываем раньше, чем Neon усыпит узел
+        max_lifetime=600,
+        kwargs={
+            "row_factory": dict_row,
+            "prepare_threshold": None,  # совместимо с pgbouncer-пулером Neon
+            # Neon усыпляет узел и не шлёт RST: без этого мёртвое соединение виснет на минуты
+            "connect_timeout": 10,
+            "keepalives": 1,
+            "keepalives_idle": 20,
+            "keepalives_interval": 5,
+            "keepalives_count": 3,
+            "tcp_user_timeout": 10000,
+        },
         configure=configure,
-        check=ConnectionPool.check_connection,  # Neon усыпляет соединения, битые отбрасываем
+        check=ConnectionPool.check_connection,  # битые соединения отбрасываем при выдаче
         open=True,
     )
 
