@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import secrets
 import tempfile
 import time
 import unittest
@@ -19,14 +20,22 @@ def csrf(client):
 class AppCase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
-        self.app = create_app({
+        cfg = {
             "TESTING": True,
             "DATABASE": os.path.join(self.tmp.name, "t.db"),
+            "DATABASE_URL": "",  # тесты никогда не трогают боевую базу из .env
+            "DATABASE_SCHEMA": "",
             "OPENROUTER_API_KEY": "",
-        })
+        }
+        pg = os.environ.get("TEST_DATABASE_URL", "").strip()
+        if pg:  # прогон на Postgres: своя временная схема на каждый тест
+            cfg["DATABASE_URL"] = pg.replace("-pooler", "")  # SET search_path не дружит с pgbouncer
+            cfg["DATABASE_SCHEMA"] = "t_" + secrets.token_hex(6)
+        self.app = create_app(cfg)
         self.c = self.app.test_client()
 
     def tearDown(self):
+        db.shutdown(self.app, drop_schema=True)
         self.tmp.cleanup()
 
     def register(self, name="alice", pw="secret1"):

@@ -50,6 +50,10 @@ def default_config(instance_path):
     models = [m.strip() for m in os.environ.get("AI_MODELS", "openrouter/free").split(",") if m.strip()]
     return dict(
         SECRET_KEY=_secret_key(instance_path),
+        # DATABASE_URL (Postgres/Neon) главнее; без неё работает SQLite-файл (локально и в тестах)
+        DATABASE_URL=os.environ.get("DATABASE_URL", "").strip(),
+        DATABASE_SCHEMA=os.environ.get("DATABASE_SCHEMA", "").strip(),
+        DB_POOL_MAX=_int("DB_POOL_MAX", 5),
         DATABASE=os.environ.get("FADECODE_DB") or os.path.join(instance_path, "fadecode.db"),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
