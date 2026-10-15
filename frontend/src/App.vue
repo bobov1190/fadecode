@@ -6,7 +6,7 @@ import AppHeader from "./components/AppHeader.vue";
   <AppHeader />
   <main id="app">
     <RouterView v-slot="{ Component, route }">
-      <component :is="Component" :key="route.name === 'pack' || route.name === 'lesson' ? route.fullPath : route.name" />
+      <component :is="Component" :key="route.fullPath" />
     </RouterView>
   </main>
 </template>

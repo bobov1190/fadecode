@@ -1,0 +1,42 @@
+<script setup>
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import StepBar from "../components/StepBar.vue";
+import { highlight } from "../lib/core";
+import { useLesson } from "../stores/lesson";
+
+const route = useRoute();
+const lesson = useLesson();
+const error = ref("");
+const L = computed(() => (lesson.id === route.params.lid ? lesson.L : null));
+const code = computed(() => (L.value ? highlight(L.value.code) : ""));
+
+onMounted(async () => {
+  try {
+    await lesson.begin(route.params.lid);
+  } catch (e) {
+    error.value = e.message;
+  }
+});
+</script>
+
+<template>
+  <div>
+    <div v-if="error" class="flash bad" role="alert">{{ error }}</div>
+    <p v-else-if="!L" class="muted">Загружаю…</p>
+    <template v-else>
+      <StepBar cur="read" />
+      <div class="eyebrow">{{ L.tag }}</div><h1>{{ L.title }}</h1>
+      <div class="task"><div class="eyebrow">Задача</div><p>{{ L.task }}</p></div>
+      <div v-if="L.change" class="task change"><div class="eyebrow" style="color:var(--warn)">Что изменилось</div><p>{{ L.change }}</p></div>
+      <div class="codebox"><pre class="code" v-html="code"></pre></div>
+      <div class="notes">
+        <div v-for="b in L.blocks" :key="b.id" class="note"><code>{{ b.name }}</code><span>{{ b.note }}</span></div>
+      </div>
+      <div class="actions">
+        <RouterLink class="btn p" :to="{ name: 'lesson-copy', params: { lid: L.id } }">Копировать код →</RouterLink>
+        <RouterLink class="btn" :to="{ name: 'lesson-recall', params: { lid: L.id } }">Сразу вспоминать</RouterLink>
+      </div>
+    </template>
+  </div>
+</template>
