@@ -1,6 +1,7 @@
 /* Редактор кода: призрачный режим (копирование) и свободный режим (вспоминание). */
 (() => {
   const C = window.Core;
+  const sfx = n => { if (window.Sfx) window.Sfx.play(n); };
 
   function mount(el, o) {
     const pre = document.createElement("pre");
@@ -27,6 +28,7 @@
       const set = v => { ta.value = v; last = v; pin(); draw(); };
       const miss = () => {
         errs++;
+        sfx("miss");
         el.classList.remove("shake");
         void el.offsetWidth;
         el.classList.add("shake");
@@ -35,11 +37,11 @@
       const run = (v, ch) => { let n = v.length; while (T[n] === ch) n++; return n; };
       const putChar = ch => {
         const v = ta.value;
-        if (v.length < T.length && T[v.length] === ch) set(v + ch); else miss();
+        if (v.length < T.length && T[v.length] === ch) { set(v + ch); sfx("key"); } else miss();
       };
       const putEnter = () => {
         const v = ta.value;
-        if (T[v.length] === "\n") { let n = v.length + 1; while (T[n] === " ") n++; set(T.slice(0, n)); } else miss();
+        if (T[v.length] === "\n") { let n = v.length + 1; while (T[n] === " ") n++; set(T.slice(0, n)); sfx("key"); } else miss();
       };
       const putTab = () => {
         const v = ta.value;
@@ -65,7 +67,7 @@
     }
 
     const ins = t => { ta.setRangeText(t, ta.selectionStart, ta.selectionEnd, "end"); draw(); };
-    ta.addEventListener("input", draw);
+    ta.addEventListener("input", () => { draw(); sfx("key"); });
     ta.addEventListener("keydown", e => {
       if (e.key === "Tab") { e.preventDefault(); ins("    "); }
       else if (e.key === "Enter") {

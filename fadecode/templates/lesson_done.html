@@ -2,7 +2,7 @@
 {% block title %}Урок пройден · {{ L.title }}{% endblock %}
 {% block content %}
 {% set names = {"good": "с первого раза", "hard": "с трудом", "again": "не вспомнил"} %}
-<div class="eyebrow">Урок пройден</div><h1>{{ L.title }}</h1>
+<div class="eyebrow" data-sfx-load="win">Урок пройден</div><h1>{{ L.title }}</h1>
 <p class="muted">Что не вспомнилось, вернётся в разделе «Повторение» раньше остальных.</p>
 <div class="sum">
   {% for name, grade in rows %}<div><code>{{ name }}</code><span class="g-{{ grade }}">{{ names[grade] }}</span></div>{% endfor %}

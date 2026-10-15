@@ -3,13 +3,14 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const { api, Editor } = window;
+  const sfx = n => { if (window.Sfx) window.Sfx.play(n); };
 
   // ---------- копирование ----------
   const copyRoot = $("#copy-root");
   if (copyRoot) {
     const lesson = copyRoot.dataset.lesson, next = copyRoot.dataset.next;
     const target = JSON.parse($("#copy-target").textContent);
-    let bad = 0;
+    let bad = 0, copyDone = false;
     const show = v => {
       const pct = Math.round((v.length / target.length) * 100);
       $("#pbar").style.width = pct + "%";
@@ -20,7 +21,10 @@
       onError: n => { bad = n; show(ed.get()); },
       onChange: v => {
         show(v);
-        $("#copy-next").disabled = v.replace(/\s+$/, "") !== target;
+        const done = v.replace(/\s+$/, "") === target;
+        $("#copy-next").disabled = !done;
+        if (done && !copyDone) sfx("win");
+        copyDone = done;
       },
     });
     ed.focus();
@@ -72,6 +76,7 @@
     const s = slots[id];
     s.resolved = true;
     s.el.classList.add(r.failed ? "fail" : "good");
+    sfx(r.failed ? "lose" : r.grade === "good" ? "win" : "ok");
     s.ed.lock();
     $$(".slot-actions button", s.el).forEach(b => { b.disabled = true; });
     $(".out", s.el).innerHTML = r.html + (r.why_html || "");
@@ -84,15 +89,17 @@
     const out = $(".out", s.el);
     if (!s.ed.get().trim()) {
       out.innerHTML = '<div class="res mid">Поле пустое: напиши хоть что-то или возьми подсказку.</div>';
+      sfx("err");
       return;
     }
     s.attempts++;
     s.busy = true;
     try {
       const r = await api("/api/check", payload(id));
-      if (r.resolved) finish(id, r); else out.innerHTML = r.html;
+      if (r.resolved) finish(id, r); else { out.innerHTML = r.html; sfx(r.status === "close" ? "warn" : "err"); }
     } catch (e) {
       s.attempts--;
+      sfx("err");
       out.innerHTML = errHtml(e);
     } finally {
       s.busy = false;
@@ -108,6 +115,7 @@
       s.hints = r.n;
       $(".hint", s.el).innerHTML = r.html;
       $(".hc", s.el).textContent = "подсказок: " + r.n;
+      sfx("hint");
     } catch (e) {
       $(".out", s.el).innerHTML = errHtml(e);
     } finally {
@@ -137,6 +145,7 @@
         const r = await api("/api/why", { lesson, block: why.dataset.block, i: +opt.dataset.i });
         $$(".opt", why).forEach(o => { if (+o.dataset.i === r.ok) o.classList.add("right"); });
         if (!r.right) opt.classList.add("wrong");
+        sfx(r.right ? "ok" : "err");
         $(".expl", why).textContent = r.exp;
       } catch (err) {
         $(".expl", why).textContent = err.message;

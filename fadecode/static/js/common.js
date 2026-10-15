@@ -11,6 +11,7 @@
         body: JSON.stringify(body || {}),
       });
     } catch (e) {
+      if (window.Sfx) window.Sfx.play("err");
       throw new Error("Нет связи с сервером.");
     }
     if (res.status === 401) { location.href = "/login"; throw new Error("Нужно войти."); }
@@ -19,6 +20,7 @@
     if (!res.ok) {
       const err = new Error((data && data.error) || "Ошибка сервера (" + res.status + ").");
       err.status = res.status;
+      if (window.Sfx) window.Sfx.play("err");
       throw err;
     }
     return data;
