@@ -14,7 +14,7 @@
 </head>
 <body>
 <header class="top"><div class="in">
-  <a class="logo" href="{{ url_for('views.home') }}"><img src="{{ url_for('static', filename='logo-dark.svg') }}" alt="Fadecode"></a>
+  <a class="logo" href="{{ url_for('views.home') }}" aria-label="Fadecode"><img class="lg-full" src="{{ url_for('static', filename='logo-dark.svg') }}" alt="Fadecode"><img class="lg-mark" src="{{ url_for('static', filename='mark.svg') }}" alt=""></a>
   {% if g.user %}
   <nav class="tabs">
     <a class="tab{% if active == 'home' %} on{% endif %}" href="{{ url_for('views.home') }}">Уроки</a>
@@ -22,23 +22,20 @@
     <a class="tab{% if active == 'stats' %} on{% endif %}" href="{{ url_for('views.stats') }}">Прогресс</a>
   </nav>
   {% endif %}
-  <div class="userbox">
-    <a class="site" href="{{ url_for('views.about') }}">О проекте</a>
-    <div class="sfx" id="sfx-wrap">
-      <button class="iconbtn" id="sfx-btn" type="button" aria-label="Настройки" aria-expanded="false" aria-controls="sfx-pop">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-      </button>
-      <div class="setpop" id="sfx-pop" hidden>
-        <div class="setpop-h">Настройки</div>
-        <label class="swrow"><span>Звуки</span><input type="checkbox" class="sw" id="sfx-on" checked></label>
-        <label class="swrow"><span>Громкость</span><input type="range" id="sfx-vol" min="0" max="100" step="5" value="60"></label>
-        <button class="btn s g" id="sfx-test" type="button">Проверить звук</button>
+  <div class="sfx" id="sfx-wrap">
+    <button class="menubtn" id="sfx-btn" type="button" aria-label="Меню" aria-expanded="false" aria-controls="sfx-pop">
+      {% if g.user %}<i class="ava">{{ g.user.username[:1]|upper }}</i>{% else %}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>{% endif %}
+    </button>
+    <div class="setpop" id="sfx-pop" hidden>
+      {% if g.user %}<div class="pop-user"><i class="ava">{{ g.user.username[:1]|upper }}</i><span>{{ g.user.username }}</span></div>{% endif %}
+      <label class="swrow"><span>Звуки</span><input type="checkbox" class="sw" id="sfx-on" checked></label>
+      <label class="swrow"><span>Громкость</span><input type="range" id="sfx-vol" min="0" max="100" step="5" value="60"></label>
+      <button class="btn s g" id="sfx-test" type="button">Проверить звук</button>
+      <div class="pop-links">
+        <a href="{{ url_for('views.about') }}">О проекте</a>
+        {% if g.user %}<form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linkbtn" type="submit">Выйти</button></form>{% endif %}
       </div>
     </div>
-    {% if g.user %}
-    <span class="who"><i class="ava">{{ g.user.username[:1]|upper }}</i><span class="wn">{{ g.user.username }}</span></span>
-    <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linkbtn" type="submit">Выйти</button></form>
-    {% endif %}
   </div>
 </div></header>
 <main id="app">
