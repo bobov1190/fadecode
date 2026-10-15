@@ -5,7 +5,8 @@ import re
 import secrets
 import time
 
-from flask import Blueprint, flash, g, jsonify, redirect, render_template, request, session, url_for
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
@@ -28,8 +29,34 @@ def _is_api():
     return request.path.startswith("/api/")
 
 
+def _signer():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="fadecode-api-token")
+
+
+def make_token(user):
+    """Подписанный токен для SPA. Хвост хеша пароля внутри: смена пароля убивает старые токены."""
+    return _signer().dumps({"u": user["id"], "k": user["pw_hash"][-10:]})
+
+
+def user_from_token(header):
+    if not header.startswith("Bearer "):
+        return None
+    try:
+        data = _signer().loads(header[7:].strip(), max_age=current_app.config["TOKEN_DAYS"] * 86400)
+    except (BadSignature, SignatureExpired):
+        return None
+    user = db.get_user(data.get("u")) if isinstance(data, dict) else None
+    if user is None or user["pw_hash"][-10:] != data.get("k"):
+        return None
+    return user
+
+
 @bp.before_app_request
 def load_user():
+    if request.path.startswith("/api/v1/"):
+        # SPA: токен в заголовке Authorization. Куки тут не используются, поэтому CSRF-проверка не нужна.
+        g.user = user_from_token(request.headers.get("Authorization", ""))
+        return None
     uid = session.get("uid")
     g.user = db.get_user(uid) if uid else None
     if uid and g.user is None:

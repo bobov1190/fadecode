@@ -61,6 +61,10 @@ def default_config(instance_path):
         PERMANENT_SESSION_LIFETIME=timedelta(days=30),
         MAX_CONTENT_LENGTH=256 * 1024,
         MAX_ANSWER_CHARS=6000,
+        TOKEN_DAYS=_int("TOKEN_DAYS", 30),
+        # Адреса фронтенда (Firebase и т.п.), которым разрешены запросы к /api/v1, через запятую
+        CORS_ORIGINS=[o.strip() for o in os.environ.get(
+            "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if o.strip()],
         OPENROUTER_API_KEY=os.environ.get("OPENROUTER_API_KEY", "").strip(),
         AI_MODELS=models,
         AI_DAILY_GLOBAL=_int("AI_DAILY_GLOBAL", 45),

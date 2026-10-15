@@ -502,3 +502,120 @@ class ContentDbTests(AppCase):
             con.commit()
             content.load(con)
         self.assertEqual(content.LESSONS, self._json("lessons.json"))
+
+
+# ---------- JSON API v1 (для SPA) ----------
+
+class V1Tests(AppCase):
+    def api(self, method, path, token=None, **body):
+        headers = {"Authorization": "Bearer " + token} if token else {}
+        return self.c.open("/api/v1" + path, method=method, json=body or None, headers=headers)
+
+    def signup(self, name="alice", pw="secret1"):
+        r = self.api("POST", "/auth/register", username=name, password=pw)
+        self.assertEqual(r.status_code, 201)
+        return r.get_json()["token"]
+
+    def test_auth_flow(self):
+        tok = self.signup()
+        me = self.api("GET", "/me", tok).get_json()
+        self.assertEqual(me["user"]["username"], "alice")
+        self.assertEqual(self.api("GET", "/me").status_code, 401)
+        self.assertEqual(self.api("GET", "/me", "garbage").status_code, 401)
+        self.assertEqual(self.api("POST", "/auth/register", username="alice", password="secret1").status_code, 409)
+        self.assertEqual(self.api("POST", "/auth/register", username="bob", password="123").status_code, 400)
+        self.assertEqual(self.api("POST", "/auth/login", username="alice", password="nope").status_code, 401)
+        ok = self.api("POST", "/auth/login", username="ALICE", password="secret1")
+        self.assertEqual(ok.status_code, 200)
+        self.assertEqual(self.api("GET", "/me", ok.get_json()["token"]).status_code, 200)
+
+    def test_token_dies_when_password_changes(self):
+        tok = self.signup()
+        with self.app.app_context():
+            con = db.get_db()
+            con.execute("UPDATE users SET pw_hash=? WHERE username=?", ("x" * 40 + "changed123", "alice"))
+            con.commit()
+        self.assertEqual(self.api("GET", "/me", tok).status_code, 401)
+
+    def test_no_csrf_and_no_cookies_needed(self):
+        tok = self.signup()
+        r = self.api("POST", "/lesson_done", tok, lesson=LID)
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn("Set-Cookie", r.headers)
+
+    def test_catalog(self):
+        tok = self.signup()
+        packs = self.api("GET", "/packs", tok).get_json()["packs"]
+        self.assertEqual([p["id"] for p in packs], [p["id"] for p in content.PACKS])
+        self.assertEqual(packs[0]["total"], len(content.PACKS[0]["items"]))
+        pk = self.api("GET", "/packs/" + packs[0]["id"], tok).get_json()
+        self.assertEqual(len(pk["items"]), len(content.PACKS[0]["items"]))
+        self.assertEqual(self.api("GET", "/packs/nope", tok).status_code, 404)
+        L = self.api("GET", "/lessons/" + LID, tok).get_json()
+        self.assertEqual(L["code"], content.full_code(content.BY_ID[LID]))
+        self.assertEqual(len(L["blocks"]), len(content.BY_ID[LID]["blocks"]))
+        for b in L["blocks"]:
+            self.assertEqual(set(b["why"]), {"q", "opts"})  # правильный ответ клиенту не уходит
+        self.assertEqual(self.api("GET", "/lessons/nope", tok).status_code, 404)
+        op = self.api("POST", "/lessons/%s/open" % LID, tok).get_json()
+        self.assertEqual(sorted(op["order"]), sorted(b["id"] for b in content.BY_ID[LID]["blocks"]))
+
+    def test_check_flow(self):
+        tok = self.signup()
+        L, bid, target = self.block()
+        base = {"lesson": LID, "block": bid}
+        self.assertEqual(self.api("POST", "/check", tok, value="  ", **base).get_json()["status"], "empty")
+        bad = self.api("POST", "/check", tok, value="x = 1", **base).get_json()
+        self.assertFalse(bad["resolved"])
+        self.assertIn(bad["status"], ("wrong", "close"))
+        self.assertIsInstance(bad["extra"], list)
+        self.assertIsInstance(bad["ins"], list)
+        hint = self.api("POST", "/hint", tok, n=2, **base).get_json()
+        self.assertEqual(hint["lines"], target.split("\n")[:2])
+        ok = self.api("POST", "/check", tok, value=target, attempts=1, hints=0, **base).get_json()
+        self.assertTrue(ok["resolved"])
+        self.assertEqual((ok["how"], ok["grade"], ok["failed"]), ("ok", "good", False))
+        self.assertIn("%s::%s" % (LID, bid), self.srs())
+        rv = self.api("POST", "/reveal", tok, value="x", **base).get_json()
+        self.assertEqual((rv["target"], rv["failed"]), (target, True))
+        self.assertEqual(self.api("POST", "/check", tok, value="x", lesson="nope", block=bid).status_code, 404)
+
+    def test_why_review_stats_done(self):
+        tok = self.signup()
+        L, bid, target = self.block()
+        b = content.find_block(L, bid)
+        w = self.api("POST", "/why", tok, lesson=LID, block=bid, i=b["why"]["ok"]).get_json()
+        self.assertTrue(w["right"])
+        self.api("POST", "/check", tok, value=target, lesson=LID, block=bid)
+        rv = self.api("GET", "/review?all=1", tok).get_json()
+        self.assertEqual([(i["lesson"], i["block"]) for i in rv["items"]], [(LID, bid)])
+        self.assertTrue(rv["has_cards"])
+        done = self.api("POST", "/lesson_done", tok, lesson=LID).get_json()
+        self.assertTrue(done["ok"])
+        self.assertEqual(done["next"]["id"], content.PACKS[0]["items"][1]["lesson"])
+        st = self.api("GET", "/stats", tok).get_json()
+        self.assertEqual(len(st["rows"]), len(content.LESSONS))
+        self.assertEqual(st["cards"]["done"], 1)
+        self.assertEqual(st["cards"]["accuracy"], 100)
+
+    def test_settings_reset_export(self):
+        tok = self.signup()
+        s = self.api("PUT", "/settings", tok, order="random", rounds="one", research=False).get_json()["settings"]
+        self.assertEqual((s["order"], s["rounds"], s["research"]), ("random", "one", False))
+        s = self.api("PUT", "/settings", tok, order="zzz").get_json()["settings"]
+        self.assertEqual(s["order"], "small")
+        self.api("POST", "/lesson_done", tok, lesson=LID)
+        self.assertEqual(list(self.api("GET", "/export", tok).get_json()["done"]), [LID])
+        self.assertTrue(self.api("POST", "/reset", tok).get_json()["ok"])
+        self.assertEqual(self.api("GET", "/export", tok).get_json()["done"], {})
+
+    def test_cors(self):
+        origin = "http://localhost:5173"
+        pre = self.c.options("/api/v1/me", headers={"Origin": origin, "Access-Control-Request-Method": "GET"})
+        self.assertEqual(pre.headers.get("Access-Control-Allow-Origin"), origin)
+        self.assertIn("Authorization", pre.headers.get("Access-Control-Allow-Headers", ""))
+        evil = self.c.get("/api/v1/me", headers={"Origin": "https://evil.example"})
+        self.assertEqual(evil.status_code, 401)
+        self.assertNotIn("Access-Control-Allow-Origin", evil.headers)
+        denied = self.c.get("/api/v1/me", headers={"Origin": origin})
+        self.assertEqual(denied.headers.get("Access-Control-Allow-Origin"), origin)  # заголовок есть и у ответа 401

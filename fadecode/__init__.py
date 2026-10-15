@@ -14,17 +14,34 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_path=os.path.join(root, "instance"))
     os.makedirs(app.instance_path, exist_ok=True)
     app.config.from_mapping(config.default_config(app.instance_path))
+    if os.environ.get("RENDER") or os.environ.get("TRUST_PROXY") == "1":
+        # За прокси Render настоящий IP клиента приходит в X-Forwarded-For (нужно для лимита попыток входа)
+        from werkzeug.middleware.proxy_fix import ProxyFix
+
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
     if test_config:
         app.config.update(test_config)
 
     db.init_app(app)
     filters.init_app(app)
 
-    from . import api, auth, views
+    from . import api, auth, v1, views
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(views.bp)
     app.register_blueprint(api.bp, url_prefix="/api")
+    app.register_blueprint(v1.bp, url_prefix="/api/v1")
+
+    @app.after_request
+    def cors(resp):
+        origin = request.headers.get("Origin")
+        if request.path.startswith("/api/v1/") and origin and origin in app.config["CORS_ORIGINS"]:
+            resp.headers["Access-Control-Allow-Origin"] = origin
+            resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+            resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, OPTIONS"
+            resp.headers["Access-Control-Max-Age"] = "600"
+            resp.headers.add("Vary", "Origin")
+        return resp
 
     @app.errorhandler(404)
     def not_found(e):
