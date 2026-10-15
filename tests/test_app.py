@@ -472,3 +472,33 @@ class HealthTests(AppCase):
             r = self.c.get("/healthz")
         self.assertEqual(r.status_code, 503)
         self.assertEqual(r.get_json()["status"], "db_down")
+
+
+# ---------- контент в БД ----------
+
+class ContentDbTests(AppCase):
+    @staticmethod
+    def _json(name):
+        with open(os.path.join(content._DATA, name), encoding="utf-8") as f:
+            return json.load(f)
+
+    def test_loaded_from_db_equals_json(self):
+        self.assertEqual(content.LESSONS, self._json("lessons.json"))
+        self.assertEqual(content.PACKS, self._json("packs.json"))
+
+    def test_content_really_comes_from_db(self):
+        with self.app.app_context():
+            con = db.get_db()
+            con.execute("UPDATE lessons SET title=? WHERE id=?", ("Новый заголовок", LID))
+            con.commit()
+            content.load(con)
+        self.assertEqual(content.BY_ID[LID]["title"], "Новый заголовок")
+
+    def test_seed_fills_only_empty_db(self):
+        with self.app.app_context():
+            con = db.get_db()
+            self.assertFalse(content.seed_from_json(con))
+            self.assertTrue(content.seed_from_json(con, force=True))
+            con.commit()
+            content.load(con)
+        self.assertEqual(content.LESSONS, self._json("lessons.json"))

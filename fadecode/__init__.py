@@ -1,9 +1,10 @@
 import os
 import time
 
+import click
 from flask import Flask, jsonify, render_template, request
 
-from . import config, db, filters
+from . import config, content, db, filters
 
 
 def create_app(test_config=None):
@@ -95,5 +96,18 @@ def create_app(test_config=None):
         resp.status_code = 200 if err is None else 503
         resp.headers["Cache-Control"] = "no-store"
         return resp
+
+    @app.cli.command("seed")
+    @click.option("--force", is_flag=True, help="заменить контент в БД содержимым data/*.json")
+    def seed_cmd(force):
+        """Заливает уроки и пакеты из data/*.json в БД (без --force только в пустую)."""
+        con = db.get_db()
+        wrote = content.seed_from_json(con, force=force)
+        con.commit()
+        content.load(con)
+        if wrote:
+            click.echo("Готово: %d уроков, %d пакетов." % (len(content.LESSONS), len(content.PACKS)))
+        else:
+            click.echo("В базе уже есть контент. Чтобы перезаписать его из JSON: flask --app run seed --force")
 
     return app

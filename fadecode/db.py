@@ -116,6 +116,57 @@ SCHEMA_SQLITE = [
 ]
 
 
+# Контент (общий DDL для Postgres и SQLite). Заполняется из data/*.json, см. content.py.
+SCHEMA_CONTENT = [
+    """CREATE TABLE IF NOT EXISTS lessons (
+        id TEXT PRIMARY KEY,
+        position INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        tag TEXT NOT NULL DEFAULT '',
+        descr TEXT NOT NULL DEFAULT '',
+        task TEXT NOT NULL DEFAULT '',
+        imports TEXT NOT NULL DEFAULT '',
+        cls TEXT NOT NULL,
+        change TEXT
+    )""",
+    """CREATE TABLE IF NOT EXISTS blocks (
+        lesson_id TEXT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+        id TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        code TEXT NOT NULL,
+        why_q TEXT NOT NULL DEFAULT '',
+        why_ok INTEGER NOT NULL DEFAULT 0,
+        why_exp TEXT NOT NULL DEFAULT '',
+        PRIMARY KEY (lesson_id, id)
+    )""",
+    """CREATE TABLE IF NOT EXISTS block_options (
+        lesson_id TEXT NOT NULL,
+        block_id TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        PRIMARY KEY (lesson_id, block_id, position),
+        FOREIGN KEY (lesson_id, block_id) REFERENCES blocks(lesson_id, id) ON DELETE CASCADE
+    )""",
+    """CREATE TABLE IF NOT EXISTS packs (
+        id TEXT PRIMARY KEY,
+        position INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        descr TEXT NOT NULL DEFAULT ''
+    )""",
+    """CREATE TABLE IF NOT EXISTS pack_items (
+        pack_id TEXT NOT NULL REFERENCES packs(id) ON DELETE CASCADE,
+        position INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT '',
+        descr TEXT NOT NULL DEFAULT '',
+        lesson_id TEXT REFERENCES lessons(id),
+        PRIMARY KEY (pack_id, position)
+    )""",
+]
+
+
 def now_ms():
     return int(time.time() * 1000)
 
@@ -130,6 +181,13 @@ class Conn:
         if self.pg:
             sql = sql.replace("?", "%s")
         return self.raw.execute(sql, params)
+
+    def executemany(self, sql, rows):
+        if self.pg:
+            with self.raw.cursor() as cur:
+                cur.executemany(sql.replace("?", "%s"), rows)
+        else:
+            self.raw.executemany(sql, rows)
 
     def commit(self):
         self.raw.commit()
@@ -236,6 +294,11 @@ def init_app(app):
             con.execute(stmt)
         if not pg:
             con.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower ON users (lower(username))")
+        for stmt in SCHEMA_CONTENT:
+            con.execute(stmt)
+        from . import content
+
+        content.ensure(con)  # пустую базу заполняет из data/*.json, затем грузит контент в память
         con.commit()
 
 
