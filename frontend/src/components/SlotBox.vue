@@ -5,6 +5,7 @@ import { api } from "../api";
 import CodeEditor from "./CodeEditor.vue";
 import { highlight } from "../lib/core";
 import { play } from "../lib/sfx";
+import { useAi } from "../stores/ai";
 
 const props = defineProps({
   lesson: { type: String, required: true },
@@ -18,6 +19,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["resolved"]);
 
+const ai = useAi();
 const ed = ref(null);
 const st = reactive({ attempts: 0, hints: 0, resolved: false, failed: false, busy: false, t0: Date.now() });
 const hintLines = ref([]);
@@ -146,12 +148,21 @@ async function choose(o) {
   }
 }
 
-onMounted(() => { if (props.autofocus) ed.value.focus(); });
+function onFocus() { ai.focus(props.bid, () => ed.value.get()); }
+
+function askAi() {
+  ai.ask("Что не так в моей попытке для этого метода? Готовое решение не показывай.",
+    { lesson: props.lesson, block: props.bid, attempt: ed.value.get() });
+}
+
+onMounted(() => {
+  if (props.autofocus) { ed.value.focus(); onFocus(); }
+});
 defineExpose({ focus: () => ed.value.focus(), value: () => ed.value.get() });
 </script>
 
 <template>
-  <div class="slot" :class="cls">
+  <div class="slot" :class="cls" @focusin="onFocus">
     <div class="slot-head"><span>{{ whole ? "ВЕСЬ КЛАСС ПО ПАМЯТИ" : label }}</span><span>{{ st.hints ? "подсказок: " + st.hints : "" }}</span></div>
     <CodeEditor ref="ed" mode="free" :rows="rows" @submit="check" />
     <div class="hint"><div v-for="(l, i) in hintLines" :key="i">{{ l }}</div></div>
@@ -168,8 +179,9 @@ defineExpose({ focus: () => ed.value.focus(), value: () => ed.value.get() });
         <template v-else>
           <b>{{ res.close ? "Почти" : "Не совпало" }}</b> · сходство {{ res.pct }}%. {{ res.summary }}
           <pre v-html="res.hl"></pre>
-          <div v-if="res.close" class="row">
-            <button class="btn s" type="button" @click="resolveVia('/accept')">Мой вариант верный, засчитать</button>
+          <div class="row">
+            <button v-if="res.close" class="btn s" type="button" @click="resolveVia('/accept')">Мой вариант верный, засчитать</button>
+            <button class="btn s g" type="button" @click="askAi">Спросить ИИ, что не так</button>
           </div>
         </template>
       </div>

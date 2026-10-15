@@ -1,4 +1,5 @@
 <script setup>
+import AiPanel from "./components/AiPanel.vue";
 import AppHeader from "./components/AppHeader.vue";
 </script>
 
@@ -9,4 +10,5 @@ import AppHeader from "./components/AppHeader.vue";
       <component :is="Component" :key="route.fullPath" />
     </RouterView>
   </main>
+  <AiPanel />
 </template>

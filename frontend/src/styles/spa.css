@@ -9,4 +9,5 @@
   .tabs .tab{flex:1;text-align:center;padding:10px 6px;font-size:14px}
   main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
   .ai-fab{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.ai-panel{bottom:calc(76px + env(safe-area-inset-bottom,0px));right:16px;height:min(520px,calc(100vh - 170px))}
 }

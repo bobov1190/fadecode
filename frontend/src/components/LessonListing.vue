@@ -1,7 +1,9 @@
 <script setup>
 /* Листинг класса: целые методы показаны, пропавшие заменены полем ввода. */
+import { onBeforeUnmount, onMounted } from "vue";
 import SlotBox from "./SlotBox.vue";
 import { highlight, indent } from "../lib/core";
+import { useAi } from "../stores/ai";
 
 const props = defineProps({
   L: { type: Object, required: true },
@@ -10,6 +12,10 @@ const props = defineProps({
   mode: { type: String, default: "recall" },
 });
 defineEmits(["resolved"]);
+
+const ai = useAi();
+onMounted(() => ai.setListing(props.L.id, props.whole ? [] : props.missing));
+onBeforeUnmount(() => ai.clearListing());
 
 const firstId = (props.L.blocks.find(b => props.missing.includes(b.id)) || {}).id;
 
