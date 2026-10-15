@@ -1,0 +1,12 @@
+/* Дополнения для SPA: мобильная нижняя панель вкладок и отступы под вырезы экрана. */
+#root{min-height:100vh}
+.top{padding-top:env(safe-area-inset-top,0px)}
+.tab{text-decoration:none}
+.pop-links .linkbtn{display:block}
+
+@media(max-width:700px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;justify-content:space-around;gap:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:rgba(13,16,14,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+  .tabs .tab{flex:1;text-align:center;padding:10px 6px;font-size:14px}
+  main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .ai-fab{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+}

@@ -1,0 +1,89 @@
+/* Дополнения для версии на Flask: ссылки-карточки, формы входа, сообщения, панель ИИ. */
+a.card{text-decoration:none;color:inherit}
+a.tab{display:inline-block;text-decoration:none}
+.top img{cursor:pointer}
+.top .logo{display:block;line-height:0}
+.userbox{display:flex;align-items:center;gap:14px;font-size:14px;color:var(--mut)}
+.userbox form{display:inline}
+.linkbtn{background:none;border:0;padding:0;color:var(--mut);font:inherit;font-size:14px;cursor:pointer}
+.linkbtn:hover{color:var(--text)}
+.flash{padding:12px 16px;border-radius:10px;margin-bottom:22px;font-size:15px;border:1px solid var(--line);background:var(--bg2)}
+.flash.ok{border-color:#2f4a27;color:var(--g2)}
+.flash.bad{border-color:#5a2a26;color:#ff9d94}
+.auth{max-width:380px;margin:40px auto 0}
+.auth form{display:grid;gap:14px;margin-top:22px}
+.auth label{display:grid;gap:6px;font-size:14px;color:var(--mut)}
+.auth input,.set select{background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit}
+.auth input:focus{outline:0;border-color:var(--g)}
+.auth .alt{margin-top:18px;font-size:14px;color:var(--mut)}
+.auth .alt a{color:var(--g2)}
+.shake{animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.advice{margin-top:16px;padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);white-space:pre-wrap;font-size:15px}
+.advice.err{border-color:#5a2a26;color:#ff9d94}
+.set form{display:contents}
+.formrow{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+
+/* ИИ-наставник */
+.ai-fab{position:fixed;right:22px;bottom:22px;z-index:20;padding:12px 18px;border-radius:999px;border:1px solid var(--g);background:var(--bg2);color:var(--g2);font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.ai-fab:hover{background:var(--g);color:#08100a}
+.ai-panel{position:fixed;right:22px;bottom:22px;z-index:21;width:min(380px,calc(100vw - 32px));height:min(520px,calc(100vh - 110px));display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden}
+.ai-panel[hidden],.ai-fab[hidden]{display:none}
+.ai-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-weight:600}
+.ai-head button{background:none;border:0;color:var(--mut);font-size:20px;line-height:1}
+.ai-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{max-width:92%;padding:10px 12px;border-radius:12px;font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ai-msg.user{align-self:flex-end;background:var(--g);color:#08100a}
+.ai-msg.bot{align-self:flex-start;background:var(--bg3);border:1px solid var(--line)}
+.ai-msg.typing{color:var(--mut)}
+.ai-msg.err{color:#ff9d94;border-color:#5a2a26}
+.ai-hello{color:var(--mut);font-size:14px}
+.ai-foot{border-top:1px solid var(--line);padding:10px;display:grid;gap:6px}
+.ai-row{display:flex;gap:8px}
+.ai-row textarea{flex:1;resize:none;height:44px;background:var(--bg3);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14.5px}
+.ai-row textarea:focus{outline:0;border-color:var(--g)}
+.ai-quota{font:400 11.5px "JetBrains Mono",monospace;color:var(--mut)}
+
+a.btn{text-decoration:none}
+
+/* Шапка */
+.top .in{display:flex;justify-content:flex-start;align-items:center;gap:6px;height:52px;padding:0 20px}
+.top .logo{flex:none;margin-right:10px}
+.top .logo img{height:22px}
+.top .lg-mark{display:none}
+.tabs{display:flex;gap:2px}
+.tab{padding:6px 12px;border-radius:8px;font-size:14.5px;transition:color .15s,background .15s}
+.tab.on{color:var(--g2);background:rgba(93,156,66,.14)}
+.badge{min-width:18px;margin-left:6px;padding:0 5px;font-size:11px;line-height:18px}
+.sfx{position:relative;margin-left:auto;flex:none}
+.menubtn{display:grid;place-items:center;width:34px;height:34px;padding:0;border-radius:50%;border:1px solid var(--line);background:var(--bg2);color:var(--mut);transition:.15s}
+.menubtn:hover,.menubtn[aria-expanded=true]{border-color:var(--g);color:var(--g2)}
+.menubtn svg{width:18px;height:18px}
+.ava{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--g);color:#08100a;font:700 12px "JetBrains Mono",monospace;font-style:normal}
+.setpop{position:absolute;right:0;top:calc(100% + 8px);width:260px;padding:14px;display:grid;gap:12px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.55);z-index:30;animation:pop .14s ease-out}
+.setpop[hidden]{display:none}
+@keyframes pop{from{opacity:0;transform:translateY(-6px) scale(.97)}}
+.setpop .btn{justify-self:start}
+.pop-user{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line);font-weight:600;overflow-wrap:anywhere}
+.pop-user .ava{width:30px;height:30px;font-size:13px}
+.swrow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:15px}
+input.sw{appearance:none;-webkit-appearance:none;flex:none;width:44px;height:24px;border-radius:12px;background:var(--bg3);border:1px solid var(--line);position:relative;cursor:pointer;transition:.15s}
+input.sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--mut);transition:.15s}
+input.sw:checked{background:var(--g);border-color:var(--g)}
+input.sw:checked::after{left:22px;background:#08100a}
+input[type=range]{accent-color:var(--g2);width:120px}
+input[type=range]:disabled,.setpop .btn:disabled{opacity:.35}
+.pop-links{display:grid;gap:2px;margin:0 -6px -6px;padding-top:8px;border-top:1px solid var(--line)}
+.pop-links form{display:block}
+.pop-links a,.pop-links .linkbtn{display:block;width:100%;padding:8px 8px;border-radius:8px;text-align:left;font-size:14.5px;color:var(--mut);text-decoration:none}
+.pop-links a:hover,.pop-links .linkbtn:hover{color:var(--text);background:var(--bg3)}
+@media(max-width:700px){
+  .top .in{height:48px;padding:0 12px;gap:2px}
+  .top .lg-full{display:none}
+  .top .lg-mark{display:block}
+  .top .logo{margin-right:6px}
+  .top .logo img{height:26px}
+  .tab{padding:6px 9px;font-size:14px}
+  .setpop{width:min(280px,calc(100vw - 24px))}
+}
+@media(max-width:380px){.tab{padding:6px 7px;font-size:13.5px}}

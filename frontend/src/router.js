@@ -1,0 +1,28 @@
+import { createRouter, createWebHistory } from "vue-router";
+import { useAuth } from "./stores/auth";
+
+const Soon = () => import("./views/SoonView.vue");
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: "/", name: "home", component: () => import("./views/PacksView.vue"), meta: { auth: true, tab: "home" } },
+    { path: "/login", name: "login", component: () => import("./views/AuthView.vue"), meta: { guest: true } },
+    { path: "/register", name: "register", component: () => import("./views/AuthView.vue"), meta: { guest: true } },
+    { path: "/packs/:pid", name: "pack", component: Soon, props: { title: "Пак" }, meta: { auth: true, tab: "home" } },
+    { path: "/lessons/:lid", name: "lesson", component: Soon, props: { title: "Урок" }, meta: { auth: true, tab: "home" } },
+    { path: "/review", name: "review", component: Soon, props: { title: "Повторение" }, meta: { auth: true, tab: "review" } },
+    { path: "/stats", name: "stats", component: Soon, props: { title: "Прогресс" }, meta: { auth: true, tab: "stats" } },
+    { path: "/:rest(.*)*", name: "404", component: Soon, props: { title: "Страница не найдена" } },
+  ],
+  scrollBehavior: () => ({ top: 0 }),
+});
+
+router.beforeEach(async to => {
+  const a = useAuth();
+  if (!a.ready) await a.load();
+  if (to.meta.auth && !a.user) return { name: "login" };
+  if (to.meta.guest && a.user) return { name: "home" };
+});
+
+export default router;
