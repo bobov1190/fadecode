@@ -50,7 +50,7 @@ a.btn{text-decoration:none}
 .top .in{display:flex;justify-content:flex-start;align-items:center;gap:6px;height:52px;padding:0 20px}
 .top .logo{flex:none;margin-right:10px}
 .top .logo img{height:22px}
-.lg-mark{display:none}
+.top .lg-mark{display:none}
 .tabs{display:flex;gap:2px}
 .tab{padding:6px 12px;border-radius:8px;font-size:14.5px;transition:color .15s,background .15s}
 .tab.on{color:var(--g2);background:rgba(93,156,66,.14)}
@@ -79,8 +79,8 @@ input[type=range]:disabled,.setpop .btn:disabled{opacity:.35}
 .pop-links a:hover,.pop-links .linkbtn:hover{color:var(--text);background:var(--bg3)}
 @media(max-width:700px){
   .top .in{height:48px;padding:0 12px;gap:2px}
-  .lg-full{display:none}
-  .lg-mark{display:block}
+  .top .lg-full{display:none}
+  .top .lg-mark{display:block}
   .top .logo{margin-right:6px}
   .top .logo img{height:26px}
   .tab{padding:6px 9px;font-size:14px}
