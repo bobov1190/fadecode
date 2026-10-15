@@ -164,6 +164,51 @@ SCHEMA_CONTENT = [
         lesson_id TEXT REFERENCES lessons(id),
         PRIMARY KEY (pack_id, position)
     )""",
+    """CREATE TABLE IF NOT EXISTS algos (
+        id TEXT PRIMARY KEY,
+        position INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        tag TEXT NOT NULL DEFAULT '',
+        descr TEXT NOT NULL DEFAULT '',
+        template_lesson TEXT NOT NULL REFERENCES lessons(id),
+        variations TEXT NOT NULL DEFAULT '[]',
+        pack_id TEXT NOT NULL DEFAULT 'algo'
+    )""",
+    """CREATE TABLE IF NOT EXISTS problems (
+        id TEXT PRIMARY KEY,
+        algo_id TEXT NOT NULL REFERENCES algos(id) ON DELETE CASCADE,
+        position INTEGER NOT NULL,
+        num INTEGER,
+        title TEXT NOT NULL,
+        level TEXT NOT NULL,
+        fn TEXT NOT NULL,
+        statement TEXT NOT NULL,
+        examples TEXT NOT NULL,
+        hints TEXT NOT NULL,
+        starter TEXT NOT NULL,
+        solution TEXT NOT NULL,
+        insight TEXT NOT NULL,
+        pre TEXT NOT NULL DEFAULT '',
+        tests TEXT NOT NULL
+    )""",
+    """CREATE TABLE IF NOT EXISTS problem_state (
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        problem_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open',
+        attempts INTEGER NOT NULL DEFAULT 0,
+        hints INTEGER NOT NULL DEFAULT 0,
+        code TEXT NOT NULL DEFAULT '',
+        at BIGINT NOT NULL,
+        PRIMARY KEY (user_id, problem_id)
+    )""",
+    """CREATE TABLE IF NOT EXISTS algo_state (
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        algo_id TEXT NOT NULL,
+        stage TEXT NOT NULL,
+        ref TEXT NOT NULL DEFAULT '',
+        at BIGINT NOT NULL,
+        PRIMARY KEY (user_id, algo_id)
+    )""",
 ]
 
 
@@ -460,7 +505,7 @@ def events_last(uid, limit=EVENT_CAP):
 
 def reset_progress(uid):
     con = get_db()
-    for table in ("srs", "done", "events"):
+    for table in ("srs", "done", "events", "problem_state", "algo_state"):
         con.execute("DELETE FROM %s WHERE user_id=?" % table, (uid,))
     con.commit()
 

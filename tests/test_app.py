@@ -619,3 +619,102 @@ class V1Tests(AppCase):
         self.assertNotIn("Access-Control-Allow-Origin", evil.headers)
         denied = self.c.get("/api/v1/me", headers={"Origin": origin})
         self.assertEqual(denied.headers.get("Access-Control-Allow-Origin"), origin)  # заголовок есть и у ответа 401
+
+
+# ---------- algorithms ----------
+
+class AlgoTests(AppCase):
+    def api(self, method, path, token=None, **body):
+        headers = {"Authorization": "Bearer " + token} if token else {}
+        return self.c.open("/api/v1" + path, method=method, json=body or None, headers=headers)
+
+    def signup(self, name="alice"):
+        r = self.api("POST", "/auth/register", username=name, password="secret1")
+        self.assertEqual(r.status_code, 201)
+        return r.get_json()["token"]
+
+    def test_db_matches_json(self):
+        path = os.path.join(os.path.dirname(content.__file__), "data", "algos.json")
+        data = json.load(open(path, encoding="utf-8"))
+        from fadecode import algos
+        self.assertEqual([a["id"] for a in algos.ALGOS], [a["id"] for a in data])
+        for a, b in zip(algos.ALGOS, data):
+            self.assertEqual([p["id"] for p in a["problems"]], [p["id"] for p in b["problems"]])
+            self.assertEqual(a["problems"][0]["reference"], b["problems"][0]["reference"])
+            self.assertEqual(a["template"], b["template"])
+
+    def test_requires_login(self):
+        self.assertEqual(self.api("GET", "/algos/bsearch").status_code, 401)
+        self.assertEqual(self.api("GET", "/problems/bs_704").status_code, 401)
+
+    def test_overview_and_pack(self):
+        tok = self.signup()
+        a = self.api("GET", "/algos/bsearch", tok).get_json()
+        self.assertEqual(a["template"]["id"], "bs_template")
+        self.assertFalse(a["template"]["done"])
+        self.assertEqual(len(a["problems"]), 10)
+        self.assertTrue(all(p["status"] == "new" for p in a["problems"]))
+        self.assertIsNone(a["resume"])
+        self.assertEqual(self.api("GET", "/algos/nope", tok).status_code, 404)
+        pk = self.api("GET", "/packs/algo", tok).get_json()
+        self.assertEqual([x["id"] for x in pk["algos"]], ["bsearch", "twoptr"])
+        self.assertEqual(pk["items"], [])
+        packs = {p["id"]: p for p in self.api("GET", "/packs", tok).get_json()["packs"]}
+        self.assertEqual(packs["algo"]["total"], 2)
+        L = self.api("GET", "/lessons/bs_template", tok).get_json()
+        self.assertEqual(L["algo"], {"id": "bsearch", "title": a["title"], "role": "template"})
+        self.assertIsNone(self.api("GET", "/lessons/" + LID, tok).get_json()["algo"])
+
+    def test_problem_flow(self):
+        tok = self.signup()
+        p = self.api("GET", "/problems/bs_704", tok).get_json()
+        self.assertNotIn("reference", p)
+        self.assertNotIn("solution", p)
+        self.assertEqual(p["hints"], [])
+        self.assertEqual(p["hints_total"], 2)
+        self.assertEqual(p["status"], "new")
+        self.assertTrue(p["tests"] and p["starter"])
+        self.assertIsNone(p["prev"])
+        self.assertEqual(self.api("PUT", "/problems/bs_704/draft", tok, code="x = 1").status_code, 200)
+        p = self.api("GET", "/problems/bs_704", tok).get_json()
+        self.assertEqual(p["draft"], "x = 1")
+        self.assertEqual(p["status"], "open")
+        h = self.api("POST", "/problems/bs_704/hint", tok, n=1).get_json()
+        self.assertEqual(len(h["hints"]), 1)
+        self.api("POST", "/problems/bs_704/hint", tok, n=2)
+        self.assertEqual(len(self.api("GET", "/problems/bs_704", tok).get_json()["hints"]), 2)
+        self.assertEqual(self.api("POST", "/problems/bs_704/result", tok, status="boom").status_code, 400)
+        r = self.api("POST", "/problems/bs_704/result", tok, status="fail").get_json()
+        self.assertEqual((r["solved"], r["attempts"]), (False, 1))
+        r = self.api("POST", "/problems/bs_704/result", tok, status="ok").get_json()
+        self.assertEqual((r["solved"], r["attempts"]), (True, 2))
+        s = self.api("POST", "/problems/bs_704/solution", tok).get_json()
+        self.assertEqual(s["status"], "solved")
+        self.assertTrue(s["reference"] and s["insight"])
+        s2 = self.api("POST", "/problems/bs_35/solution", tok).get_json()
+        self.assertEqual(s2["status"], "given_up")
+        rows = {x["id"]: x["status"] for x in self.api("GET", "/algos/bsearch", tok).get_json()["problems"]}
+        self.assertEqual((rows["bs_704"], rows["bs_35"], rows["bs_278"]), ("solved", "given_up", "new"))
+        self.assertEqual(self.api("GET", "/problems/nope", tok).status_code, 404)
+        self.api("POST", "/reset", tok)
+        self.assertEqual(self.api("GET", "/problems/bs_704", tok).get_json()["status"], "new")
+
+    def test_resume_state(self):
+        tok = self.signup()
+        self.assertEqual(self.api("PUT", "/algos/bsearch/state", tok, stage="lesson-copy", ref="bs_template").status_code, 200)
+        self.assertEqual(self.api("GET", "/algos/bsearch", tok).get_json()["resume"], {"stage": "lesson-copy", "ref": "bs_template"})
+        self.assertEqual(self.api("PUT", "/algos/bsearch/state", tok, stage="nope", ref="x").status_code, 400)
+        self.assertEqual(self.api("PUT", "/algos/bsearch/state", tok, stage="lesson-read", ref="tp_template").status_code, 400)
+        self.assertEqual(self.api("PUT", "/algos/bsearch/state", tok, stage="problem", ref="tp_283").status_code, 400)
+        self.api("PUT", "/problems/bs_35/draft", tok, code="pass")
+        self.assertEqual(self.api("GET", "/algos/bsearch", tok).get_json()["resume"], {"stage": "problem", "ref": "bs_35"})
+
+    def test_ai_problem(self):
+        tok = self.signup()
+        self.assertEqual(self.api("POST", "/ai/problem", tok, problem="bs_704", message="помоги").status_code, 503)
+        self.assertEqual(self.api("POST", "/ai/problem", tok, problem="bs_704", message="").status_code, 400)
+        self.assertEqual(self.api("POST", "/ai/problem", tok, problem="nope", message="a").status_code, 404)
+        from fadecode import algos
+        msgs = ai.problem_messages(algos.PROBLEMS["bs_704"], "code", "err", [], "вопрос")
+        self.assertIn("code", msgs[0]["content"])
+        self.assertIn(algos.PROBLEMS["bs_704"]["reference"], msgs[0]["content"])

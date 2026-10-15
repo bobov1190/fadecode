@@ -38,7 +38,7 @@ def seed_from_json(con, force=False):
                 raise RuntimeError("В пакете %s ссылка на несуществующий урок %s" % (p["id"], it["lesson"]))
 
     if force:
-        for table in ("pack_items", "packs", "block_options", "blocks", "lessons"):
+        for table in ("problems", "algos", "pack_items", "packs", "block_options", "blocks", "lessons"):
             con.execute("DELETE FROM " + table)
 
     con.executemany(
@@ -67,6 +67,9 @@ def seed_from_json(con, force=False):
         [(p["id"], j, it["name"], it.get("category", ""), it.get("desc", ""), it["lesson"] or None)
          for p in packs for j, it in enumerate(p["items"])],
     )
+    from . import algos
+
+    algos.seed(con, force=True)
     return True
 
 
@@ -115,10 +118,17 @@ def load(con):
     LESSONS[:] = lessons
     PACKS[:] = packs
 
+    from . import algos
+
+    algos.load(con)
+
 
 def ensure(con):
     """Старт приложения: пустую базу заполняем из JSON, затем грузим контент в память."""
     seed_from_json(con)
+    from . import algos
+
+    algos.seed(con)
     load(con)
 
 

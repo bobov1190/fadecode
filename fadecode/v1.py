@@ -11,7 +11,7 @@ import time
 from flask import Blueprint, g, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import api, auth, content, core, db
+from . import algos, api, auth, content, core, db
 from .api import ApiError
 
 bp = Blueprint("v1", __name__)
@@ -91,9 +91,7 @@ def packs():
     uid = g.user["id"]
     done = db.done_map(uid)
     out = [
-        {"id": p["id"], "title": p["title"], "desc": p["desc"], "total": len(p["items"]),
-         "ready": content.ready_count(p),
-         "finished": sum(1 for it in p["items"] if it["lesson"] and it["lesson"] in done)}
+        dict({"id": p["id"], "title": p["title"], "desc": p["desc"]}, **algos.pack_counts(p, uid, done))
         for p in content.PACKS
     ]
     return jsonify(packs=out, due=len(_due(uid)))
@@ -112,7 +110,8 @@ def pack(pid):
                       "lesson": L["id"] if L else None, "title": L["title"] if L else None,
                       "finished": bool(L and L["id"] in done),
                       "lines": content.nlines(content.full_code(L)) if L else 0})
-    return jsonify(id=p["id"], title=p["title"], desc=p["desc"], ready=content.ready_count(p), items=items)
+    return jsonify(id=p["id"], title=p["title"], desc=p["desc"], ready=content.ready_count(p), items=items,
+                   algos=algos.pack_algos(p["id"], g.user["id"], done))
 
 
 # ---------- урок ----------
@@ -144,7 +143,8 @@ def _lesson_json(L):
     if "change" in L:
         out["change"] = L["change"]
     out.update(code=content.full_code(L), body=content.class_body(L),
-               rows_whole=content.nlines(content.class_body(L)), blocks=blocks, pack=pack, next=nxt)
+               rows_whole=content.nlines(content.class_body(L)), blocks=blocks, pack=pack, next=nxt,
+               algo=algos.algo_for_lesson(L["id"]))
     return out
 
 
@@ -356,3 +356,6 @@ def ai_chat():
 @bp.post("/ai/advice")
 def ai_advice():
     return api.ai_advice()
+
+
+algos.register(bp)

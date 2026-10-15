@@ -144,3 +144,26 @@ def advice_messages(summary):
         {"role": "system", "content": ADVICE_SYSTEM},
         {"role": "user", "content": "Моя сводка:\n" + summary + "\n\nЧто повторить в первую очередь?"},
     ]
+
+
+PROBLEM_SYSTEM = (
+    "Ты наставник в тренажёре Fadecode по алгоритмам (задачи в стиле LeetCode, Python). Ученик сначала выучил "
+    "шаблон алгоритма, теперь решает задачу сам.\n"
+    "Правила: отвечай по-русски, коротко (до 6 предложений). НЕ пиши готовое решение и не выдавай код целиком, "
+    "максимум одну короткую строку для иллюстрации. Найди в попытке ученика конкретную ошибку (по коду и тексту "
+    "ошибки тестов), объясни, на каком входе она ломает ответ, и подтолкни вопросом. Если подход неверный, назови "
+    "шаблон, который стоит вспомнить, и что в нём поменять."
+)
+
+
+def problem_messages(P, attempt, error, history, message):
+    ctx = ["Задача: %s (LeetCode %s, %s)." % (P["title"], P.get("num") or "-", P["level"]),
+           "Условие: " + P["statement"]]
+    system = PROBLEM_SYSTEM + "\n\n" + "\n".join(ctx)
+    system += "\n\nИДЕЯ РЕШЕНИЯ (только для тебя): " + P["insight"]
+    system += "\n\nЭТАЛОННОЕ РЕШЕНИЕ (только для тебя, не показывай и не цитируй):\n" + P["reference"]
+    if attempt.strip():
+        system += "\n\nТЕКУЩАЯ ПОПЫТКА УЧЕНИКА:\n" + attempt
+    if error.strip():
+        system += "\n\nПОСЛЕДНИЙ РЕЗУЛЬТАТ ТЕСТОВ:\n" + error
+    return [{"role": "system", "content": system}] + history + [{"role": "user", "content": message}]
