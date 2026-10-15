@@ -21,6 +21,19 @@ onMounted(async () => {
     <div class="eyebrow"><RouterLink class="crumb" :to="{ name: 'home' }">← Пакеты</RouterLink></div>
     <div v-if="error" class="flash bad" role="alert">{{ error }}</div>
     <p v-else-if="!pack" class="muted">Загружаю…</p>
+    <template v-else-if="pack.algos.length">
+      <h1>{{ pack.title }}</h1>
+      <p class="muted">{{ pack.desc }}</p>
+      <div class="grid">
+        <RouterLink v-for="a in pack.algos" :key="a.id" class="card" :to="{ name: 'algo', params: { aid: a.id } }">
+          <span class="tag">{{ a.tag }}</span><h3>{{ a.title }}</h3><p>{{ a.desc }}</p>
+          <div class="meta">
+            <span>{{ a.template_done ? "шаблон выучен" : "шаблон не выучен" }}</span>
+            <span :class="{ ok: a.total && a.solved === a.total }">задач: {{ a.solved }}/{{ a.total }}</span>
+          </div>
+        </RouterLink>
+      </div>
+    </template>
     <template v-else>
       <h1>{{ pack.title }}</h1>
       <p class="muted">{{ pack.desc }} Готово уроков: {{ pack.ready }} из {{ pack.items.length }}.</p>

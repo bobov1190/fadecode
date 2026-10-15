@@ -30,6 +30,10 @@ export const useLesson = defineStore("lesson", {
       await this.load(lid);
       if (!this.order.length) await this.shuffle();
     },
+    track(stage) {
+      const a = this.L && this.L.algo;
+      if (a) api.put("/algos/" + a.id + "/state", { stage, ref: this.L.id }).catch(() => {});
+    },
     grade(bid, g) {
       if (!(bid in this.grades)) this.grades[bid] = g;
     },

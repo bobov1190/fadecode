@@ -48,6 +48,7 @@ async function next() {
 onMounted(async () => {
   try {
     await lesson.ensure(route.params.lid);
+    lesson.track("lesson-recall");
     ready.value = true;
   } catch (e) {
     error.value = e.message;

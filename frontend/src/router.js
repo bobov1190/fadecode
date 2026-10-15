@@ -16,6 +16,8 @@ const router = createRouter({
     { path: "/lessons/:lid/done", name: "lesson-done", component: () => import("./views/LessonDoneView.vue"), meta: { auth: true, tab: "home" } },
         { path: "/review", name: "review", component: () => import("./views/ReviewView.vue"), meta: { ai: true, auth: true, tab: "review" } },
         { path: "/stats", name: "stats", component: () => import("./views/StatsView.vue"), meta: { auth: true, tab: "stats" } },
+    { path: "/algos/:aid", name: "algo", component: () => import("./views/AlgoView.vue"), meta: { auth: true, tab: "home" } },
+    { path: "/problems/:pid", name: "problem", component: () => import("./views/ProblemView.vue"), meta: { ai: true, auth: true, tab: "home" } },
     { path: "/:rest(.*)*", name: "404", component: Soon, props: { title: "Страница не найдена" } },
   ],
   scrollBehavior: () => ({ top: 0 }),

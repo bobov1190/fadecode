@@ -8,6 +8,7 @@ const props = defineProps({
   mode: { type: String, default: "free" },
   target: { type: String, default: "" },
   rows: { type: Number, default: 3 },
+  initial: { type: String, default: "" },
 });
 const emit = defineEmits(["change", "error", "submit"]);
 
@@ -93,12 +94,16 @@ function onKeydown(e) {
   }
 }
 
-onMounted(draw);
+onMounted(() => {
+  if (props.initial) ta.value.value = props.initial;
+  draw();
+});
 
 defineExpose({
   get: () => ta.value.value,
   focus: () => ta.value.focus(),
   lock: () => { locked.value = true; },
+  set: v => { ta.value.value = v; draw(); },
   errors: () => errs,
 });
 </script>

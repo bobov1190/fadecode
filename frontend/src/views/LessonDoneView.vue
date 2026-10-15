@@ -38,6 +38,8 @@ onMounted(async () => {
         <div v-for="[name, grade] in rows" :key="name"><code>{{ name }}</code><span :class="'g-' + grade">{{ names[grade] }}</span></div>
       </div>
       <div class="actions">
+        <RouterLink v-if="L.algo && L.algo.role === 'template'" class="btn p" :to="{ name: 'algo', params: { aid: L.algo.id } }">К задачам →</RouterLink>
+        <RouterLink v-else-if="L.algo" class="btn p" :to="{ name: 'algo', params: { aid: L.algo.id } }">К алгоритму →</RouterLink>
         <RouterLink v-if="L.next" class="btn p" :to="{ name: 'lesson', params: { lid: L.next.id } }">Следующий: {{ L.next.title }} →</RouterLink>
         <RouterLink class="btn" :to="{ name: 'lesson', params: { lid: L.id } }">Пройти заново</RouterLink>
         <RouterLink class="btn g" :to="L.pack ? { name: 'pack', params: { pid: L.pack.id } } : { name: 'home' }">К урокам</RouterLink>

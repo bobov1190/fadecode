@@ -36,6 +36,7 @@ async function next() {
 onMounted(async () => {
   try {
     await lesson.ensure(route.params.lid);
+    lesson.track("lesson-copy");
     ready.value = true;
     await nextTick();
     editor.value && editor.value.focus();

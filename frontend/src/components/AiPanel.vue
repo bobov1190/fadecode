@@ -14,7 +14,7 @@ const msgsEl = ref(null);
 
 // на повторении адрес без id урока, там урок отдаёт открытый листинг; пустой экран без карточки панель не показывает
 const lessonId = computed(() => route.params.lid || ai.lesson);
-const visible = computed(() => !!auth.user && !!route.meta.ai && !!lessonId.value);
+const visible = computed(() => !!auth.user && !!route.meta.ai && !!(lessonId.value || ai.problem));
 
 function scroll() {
   nextTick(() => { if (msgsEl.value) msgsEl.value.scrollTop = msgsEl.value.scrollHeight; });
@@ -37,7 +37,7 @@ function onKey(e) {
 
 watch(() => ai.msgs.length, scroll);
 watch(() => ai.open, v => { if (v) scroll(); });
-watch(lessonId, id => { if (id) ai.resetFor(id); }, { immediate: true });
+watch(() => ai.problem || lessonId.value, id => { if (id) ai.resetFor(id); }, { immediate: true });
 </script>
 
 <template>

@@ -14,6 +14,7 @@ const code = computed(() => (L.value ? highlight(L.value.code) : ""));
 onMounted(async () => {
   try {
     await lesson.begin(route.params.lid);
+    lesson.track("lesson-read");
   } catch (e) {
     error.value = e.message;
   }
@@ -25,6 +26,7 @@ onMounted(async () => {
     <div v-if="error" class="flash bad" role="alert">{{ error }}</div>
     <p v-else-if="!L" class="muted">Загружаю…</p>
     <template v-else>
+      <div v-if="L.algo" class="eyebrow"><RouterLink class="crumb" :to="{ name: 'algo', params: { aid: L.algo.id } }">← {{ L.algo.title }}</RouterLink></div>
       <StepBar cur="read" />
       <div class="eyebrow">{{ L.tag }}</div><h1>{{ L.title }}</h1>
       <div class="task"><div class="eyebrow">Задача</div><p>{{ L.task }}</p></div>

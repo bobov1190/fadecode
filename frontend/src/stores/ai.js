@@ -2,20 +2,21 @@ import { defineStore } from "pinia";
 import { api } from "../api";
 import { play } from "../lib/sfx";
 
-// Функция, которая отдаёт текст из поля, где сейчас курсор. В стейте её не держим: это не данные.
 let attemptGetter = null;
+let errorGetter = null;
 
 export const useAi = defineStore("ai", {
   state: () => ({
     open: false,
     busy: false,
-    msgs: [], // { role: "user" | "bot", text, cls }
-    history: [], // то, что уходит модели: { role, content }
+    msgs: [],
+    history: [],
     left: null,
-    lesson: "", // урок, который сейчас на экране (ставит LessonListing)
-    chatLesson: "", // урок, к которому относится нынешний диалог
-    block: "", // метод, в поле которого стоит курсор
+    lesson: "",
+    chatLesson: "",
+    block: "",
     missing: [],
+    problem: "",
   }),
   actions: {
     focus(block, getter) {
@@ -32,27 +33,49 @@ export const useAi = defineStore("ai", {
       this.missing = [];
       attemptGetter = null;
     },
-    // Новый урок: старый диалог про другой код только путает модель.
-    resetFor(lesson) {
-      if (this.chatLesson === lesson) return;
-      this.chatLesson = lesson;
+    setProblem(id, attempt, error) {
+      this.problem = id;
+      attemptGetter = attempt;
+      errorGetter = error;
+    },
+    clearProblem() {
+      this.problem = "";
+      attemptGetter = null;
+      errorGetter = null;
+    },
+    resetFor(key) {
+      if (this.chatLesson === key) return;
+      this.chatLesson = key;
       this.msgs = [];
       this.history = [];
     },
     async ask(text, extra) {
       text = (text || "").trim();
+      const prob = this.problem;
       const lesson = (extra && extra.lesson) || this.lesson;
-      if (!text || this.busy || !lesson) return;
-      this.resetFor(lesson);
+      const key = prob || lesson;
+      if (!text || this.busy || !key) return;
+      this.resetFor(key);
       this.open = true;
       this.busy = true;
       this.msgs.push({ role: "user", text });
       const wait = { role: "bot", text: "Думаю…", cls: "typing" };
       this.msgs.push(wait);
       try {
-        const ctx = { lesson, block: this.block, attempt: attemptGetter ? attemptGetter() : "", missing: this.missing };
-        const body = Object.assign(ctx, extra || {}, { message: text, history: this.history.slice(-6) });
-        const r = await api.post("/ai/chat", body);
+        let r;
+        if (prob) {
+          r = await api.post("/ai/problem", {
+            problem: prob,
+            attempt: attemptGetter ? attemptGetter() : "",
+            error: errorGetter ? errorGetter() : "",
+            message: text,
+            history: this.history.slice(-6),
+          });
+        } else {
+          const ctx = { lesson, block: this.block, attempt: attemptGetter ? attemptGetter() : "", missing: this.missing };
+          const body = Object.assign(ctx, extra || {}, { message: text, history: this.history.slice(-6) });
+          r = await api.post("/ai/chat", body);
+        }
         this.msgs.splice(this.msgs.indexOf(wait), 1, { role: "bot", text: r.text });
         this.history.push({ role: "user", content: text }, { role: "assistant", content: r.text });
         if (typeof r.left === "number") this.left = r.left;
