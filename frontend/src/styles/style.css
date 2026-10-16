@@ -4,7 +4,7 @@ body{background:var(--bg);color:var(--text);font:400 16px/1.6 Onest,system-ui,sa
 button{font:inherit;color:inherit;cursor:pointer}
 a{color:inherit}
 code,pre,textarea,.mono{font-family:"JetBrains Mono",Consolas,monospace}
-.top{position:sticky;top:0;z-index:10;background:rgba(13,16,14,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top{position:sticky;top:0;z-index:10;background:rgba(13,16,14,.98);border-bottom:1px solid var(--line)}
 .top .in{max-width:1000px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .top img{height:30px;display:block;cursor:pointer}
 .tabs{display:flex;gap:4px}

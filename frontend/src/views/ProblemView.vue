@@ -119,7 +119,7 @@ onMounted(async () => {
     status.value = p.status;
     initial.value = p.draft || p.starter;
     lastSaved = initial.value;
-    rows.value = Math.max(10, initial.value.split("\n").length + 2);
+    rows.value = Math.max(8, initial.value.split("\n").length);
     ai.setProblem(p.id, () => (ed.value ? ed.value.get() : ""), () => lastError);
     warmup();
     api.put("/algos/" + p.algo.id + "/state", { stage: "problem", ref: p.id }).catch(() => {});
@@ -142,13 +142,8 @@ onBeforeUnmount(() => {
     <p v-else-if="!P" class="muted">Загружаю…</p>
     <template v-else>
       <div class="eyebrow"><RouterLink class="crumb" :to="{ name: 'algo', params: { aid: P.algo.id } }">← {{ P.algo.title }}</RouterLink></div>
-      <div class="roundhead">
-        <div>
-          <div class="eyebrow">{{ P.num ? "LeetCode " + P.num : "Задача" }}</div>
-          <h1>{{ P.title }}</h1>
-        </div>
-        <span class="lvl" :class="P.level">{{ levels[P.level] }}</span>
-      </div>
+      <div class="eyebrow ehead"><span>{{ P.num ? "LeetCode " + P.num : "Задача" }}</span><span class="lvl" :class="P.level">{{ levels[P.level] }}</span></div>
+      <h1>{{ P.title }}</h1>
 
       <div class="task"><div class="eyebrow">Условие</div><p class="statement">{{ P.statement }}</p></div>
       <div v-if="P.examples.length" class="examples">
