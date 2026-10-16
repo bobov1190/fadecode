@@ -7,6 +7,7 @@ import { bindUnauthorized } from "./stores/auth";
 import "./styles/style.css";
 import "./styles/extra.css";
 import "./styles/spa.css";
+import "./styles/editor.css";
 
 const app = createApp(App);
 app.use(createPinia());

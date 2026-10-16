@@ -76,11 +76,11 @@ def seed_from_json(con, force=False):
 def load(con):
     """Читает контент из БД в LESSONS, PACKS и BY_ID (на месте)."""
     rows = con.execute(
-        "SELECT id, title, tag, descr, task, imports, cls, change FROM lessons ORDER BY position"
+        "SELECT id, title, tag, descr, task, imports, cls, change, author FROM lessons ORDER BY position"
     ).fetchall()
     lessons = [
         {"id": r["id"], "title": r["title"], "tag": r["tag"], "desc": r["descr"], "task": r["task"],
-         "imports": r["imports"], "cls": r["cls"], "blocks": []}
+         "imports": r["imports"], "cls": r["cls"], "author": r["author"], "blocks": []}
         for r in rows
     ]
     for l, r in zip(lessons, rows):
@@ -101,8 +101,8 @@ def load(con):
         by_block[(r["lesson_id"], r["block_id"])]["why"]["opts"].append(r["text"])
 
     packs = [
-        {"id": r["id"], "title": r["title"], "desc": r["descr"], "items": []}
-        for r in con.execute("SELECT id, title, descr FROM packs ORDER BY position").fetchall()
+        {"id": r["id"], "title": r["title"], "desc": r["descr"], "author": r["author"], "items": []}
+        for r in con.execute("SELECT id, title, descr, author FROM packs ORDER BY position").fetchall()
     ]
     by_pack = {p["id"]: p for p in packs}
     for r in con.execute(

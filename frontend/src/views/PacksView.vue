@@ -30,6 +30,7 @@ onMounted(async () => {
         <span class="tag">{{ p.total }} тем</span>
         <h3>{{ p.title }}</h3>
         <p>{{ p.desc }}</p>
+        <span v-if="p.author" class="by">Автор: {{ p.author }}</span>
         <span class="meta">
           <span>готово к изучению: {{ p.ready }}</span>
           <span :class="{ ok: p.finished }">пройдено: {{ p.finished }}/{{ p.total }}</span>

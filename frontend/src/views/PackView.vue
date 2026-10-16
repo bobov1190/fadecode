@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { api } from "../api";
+import { useAuth } from "../stores/auth";
 
 const route = useRoute();
+const auth = useAuth();
 const pack = ref(null);
 const error = ref("");
 
@@ -23,6 +25,7 @@ onMounted(async () => {
     <p v-else-if="!pack" class="muted">Загружаю…</p>
     <template v-else-if="pack.algos.length">
       <h1>{{ pack.title }}</h1>
+      <p class="by">Автор: {{ pack.author }}<RouterLink v-if="auth.user && auth.user.is_admin" class="crumb" :to="{ name: 'editor-pack', params: { pid: pack.id } }"> · править пак</RouterLink></p>
       <p class="muted">{{ pack.desc }}</p>
       <div class="grid">
         <RouterLink v-for="a in pack.algos" :key="a.id" class="card" :to="{ name: 'algo', params: { aid: a.id } }">
@@ -36,6 +39,7 @@ onMounted(async () => {
     </template>
     <template v-else>
       <h1>{{ pack.title }}</h1>
+      <p class="by">Автор: {{ pack.author }}<RouterLink v-if="auth.user && auth.user.is_admin" class="crumb" :to="{ name: 'editor-pack', params: { pid: pack.id } }"> · править пак</RouterLink></p>
       <p class="muted">{{ pack.desc }} Готово уроков: {{ pack.ready }} из {{ pack.items.length }}.</p>
       <div class="grid">
         <template v-for="it in pack.items" :key="it.n">

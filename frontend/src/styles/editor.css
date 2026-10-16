@@ -1,0 +1,30 @@
+/* Редактор паков и карточек (админ) и строка автора. */
+.by{font:400 12.5px "JetBrains Mono",monospace;color:#6f7d6e;margin:2px 0 0}
+.by .crumb{color:var(--g2)}
+.card .by{margin-top:4px}
+
+.erows{display:grid;gap:8px;margin-top:14px}
+.erow{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:12px 14px;background:var(--bg2);border:1px solid var(--line);border-radius:12px}
+.erow .n{font:500 13px "JetBrains Mono",monospace;color:var(--mut);text-align:center}
+.erow b{display:block;overflow-wrap:anywhere}
+.erow .sub{font:400 12.5px "JetBrains Mono",monospace;color:var(--mut);overflow-wrap:anywhere}
+.erow .tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.ib{padding:6px 10px;min-width:34px;justify-content:center}
+
+.eform{max-width:860px}
+.eform select{background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit;width:100%}
+.eform input[type=radio]{padding:0;width:18px;height:18px;accent-color:var(--g);flex:none}
+.eform textarea.mono,.eform input.mono{font:400 14px/1.6 "JetBrains Mono",Consolas,monospace;tab-size:4;white-space:pre;overflow-x:auto}
+.eform h3{margin:0}
+.eblock{display:grid;gap:12px;padding:16px;border:1px solid var(--line);border-left:3px solid var(--g);border-radius:12px;background:var(--bg2)}
+.ehead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ehead .num{font:700 12px "JetBrains Mono",monospace;background:var(--g);color:#08100a;border-radius:6px;padding:2px 8px}
+.ehead .grow{flex:1;min-width:140px}
+.eopt{display:flex;gap:10px;align-items:center}
+.eopt input[type=text]{flex:1}
+.eitem{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
+.eitem .wide{grid-column:1 / -1}
+.addrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.addrow select{flex:1;min-width:200px}
+.preview{margin-top:6px}
+@media(max-width:700px){.erow{grid-template-columns:1fr}.erow .n{display:none}.erow .tools{justify-content:flex-start}.eitem{grid-template-columns:1fr}}

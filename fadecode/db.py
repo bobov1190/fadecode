@@ -127,7 +127,8 @@ SCHEMA_CONTENT = [
         task TEXT NOT NULL DEFAULT '',
         imports TEXT NOT NULL DEFAULT '',
         cls TEXT NOT NULL,
-        change TEXT
+        change TEXT,
+        author TEXT NOT NULL DEFAULT 'Bahodir'
     )""",
     """CREATE TABLE IF NOT EXISTS blocks (
         lesson_id TEXT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
@@ -153,7 +154,8 @@ SCHEMA_CONTENT = [
         id TEXT PRIMARY KEY,
         position INTEGER NOT NULL,
         title TEXT NOT NULL,
-        descr TEXT NOT NULL DEFAULT ''
+        descr TEXT NOT NULL DEFAULT '',
+        author TEXT NOT NULL DEFAULT 'Bahodir'
     )""",
     """CREATE TABLE IF NOT EXISTS pack_items (
         pack_id TEXT NOT NULL REFERENCES packs(id) ON DELETE CASCADE,
@@ -212,19 +214,6 @@ SCHEMA_CONTENT = [
     """CREATE TABLE IF NOT EXISTS admins (
         user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE
     )""",
-    """CREATE TABLE IF NOT EXISTS desk_tasks (
-        id TEXT PRIMARY KEY,
-        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        title TEXT NOT NULL,
-        note TEXT NOT NULL DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'idea',
-        est_min INTEGER NOT NULL DEFAULT 30,
-        spent_sec INTEGER NOT NULL DEFAULT 0,
-        timer_at BIGINT,
-        created BIGINT NOT NULL,
-        done_at BIGINT
-    )""",
-    "CREATE INDEX IF NOT EXISTS desk_tasks_user ON desk_tasks(user_id, created)",
     """CREATE TABLE IF NOT EXISTS profiles (
         user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
         full_name TEXT NOT NULL
@@ -366,6 +355,23 @@ def _make_pool(app):
     )
 
 
+def _has_column(con, table, col):
+    if con.pg:
+        r = con.execute(
+            "SELECT 1 AS x FROM information_schema.columns WHERE table_schema = current_schema() "
+            "AND table_name=? AND column_name=?", (table, col)).fetchone()
+        return r is not None
+    return any(r["name"] == col for r in con.execute("PRAGMA table_info(%s)" % table).fetchall())
+
+
+def _migrate(con):
+    """Доводит старую базу до текущей схемы: авторство у паков и карточек, убрана «Доска»."""
+    for table in ("lessons", "packs"):
+        if not _has_column(con, table, "author"):
+            con.execute("ALTER TABLE %s ADD COLUMN author TEXT NOT NULL DEFAULT 'Bahodir'" % table)
+    con.execute("DROP TABLE IF EXISTS desk_tasks")
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     pg = use_postgres(app)
@@ -388,6 +394,7 @@ def init_app(app):
             con.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower ON users (lower(username))")
         for stmt in SCHEMA_CONTENT:
             con.execute(stmt)
+        _migrate(con)
         from . import content
 
         content.ensure(con)  # пустую базу заполняет из data/*.json, затем грузит контент в память

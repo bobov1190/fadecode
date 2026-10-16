@@ -51,7 +51,7 @@ onBeforeUnmount(() => { document.removeEventListener("click", onDoc); document.r
 
       <nav v-if="auth.user" class="tabs" aria-label="Разделы">
         <RouterLink v-if="auth.user.is_admin" class="tab" :class="{ on: tab === 'admin' }" :to="{ name: 'admin' }">Задания</RouterLink>
-        <RouterLink v-if="auth.user.is_admin" class="tab" :class="{ on: tab === 'desk' }" :to="{ name: 'desk' }">Доска</RouterLink>
+        <RouterLink v-if="auth.user.is_admin" class="tab" :class="{ on: tab === 'editor' }" :to="{ name: 'editor' }">Редактор</RouterLink>
         <RouterLink class="tab" :class="{ on: tab === 'home' }" :to="{ name: 'home' }">Уроки</RouterLink>
         <RouterLink class="tab" :class="{ on: tab === 'review' }" :to="{ name: 'review' }">
           Повторение<span v-if="auth.due" class="badge">{{ auth.due }}</span>

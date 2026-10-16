@@ -3,10 +3,12 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import StepBar from "../components/StepBar.vue";
 import { highlight } from "../lib/core";
+import { useAuth } from "../stores/auth";
 import { useLesson } from "../stores/lesson";
 
 const route = useRoute();
 const lesson = useLesson();
+const auth = useAuth();
 const error = ref("");
 const L = computed(() => (lesson.id === route.params.lid ? lesson.L : null));
 const code = computed(() => (L.value ? highlight(L.value.code) : ""));
@@ -29,6 +31,7 @@ onMounted(async () => {
       <div v-if="L.algo" class="eyebrow"><RouterLink class="crumb" :to="{ name: 'algo', params: { aid: L.algo.id } }">← {{ L.algo.title }}</RouterLink></div>
       <StepBar cur="read" />
       <div class="eyebrow">{{ L.tag }}</div><h1>{{ L.title }}</h1>
+      <p class="by">Автор: {{ L.author }}<RouterLink v-if="auth.user && auth.user.is_admin" class="crumb" :to="{ name: 'editor-lesson', params: { lid: L.id } }"> · править карточку</RouterLink></p>
       <div v-if="L.algo" class="task change"><p><b>{{ L.algo.role === "template" ? "Это шаблон, а не задача." : "Это вариация шаблона." }}</b> {{ L.algo.role === "template" ? "Сначала выучи его: разбор, копирование поверх призрака, вспоминание. Задачи на этот шаблон ждут на странице алгоритма." : "Тот же приём в другом виде. Выучи так же: разбор, копирование, вспоминание." }}</p></div>
       <div class="task"><div class="eyebrow">{{ L.algo ? "Что выучим" : "Задача" }}</div><p>{{ L.task }}</p></div>
       <div v-if="L.change" class="task change"><div class="eyebrow" style="color:var(--warn)">Что изменилось</div><p>{{ L.change }}</p></div>

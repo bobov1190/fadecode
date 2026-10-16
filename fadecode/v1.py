@@ -11,7 +11,7 @@ import time
 from flask import Blueprint, g, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import algos, api, assign, auth, content, core, db, desk
+from . import algos, api, assign, auth, content, core, db, editor
 from .api import ApiError
 
 bp = Blueprint("v1", __name__)
@@ -93,7 +93,8 @@ def packs():
     uid = g.user["id"]
     done = db.done_map(uid)
     out = [
-        dict({"id": p["id"], "title": p["title"], "desc": p["desc"]}, **algos.pack_counts(p, uid, done))
+        dict({"id": p["id"], "title": p["title"], "desc": p["desc"], "author": p.get("author", "")},
+             **algos.pack_counts(p, uid, done))
         for p in content.PACKS
     ]
     return jsonify(packs=out, due=len(_due(uid)))
@@ -112,7 +113,8 @@ def pack(pid):
                       "lesson": L["id"] if L else None, "title": L["title"] if L else None,
                       "finished": bool(L and L["id"] in done),
                       "lines": content.nlines(content.full_code(L)) if L else 0})
-    return jsonify(id=p["id"], title=p["title"], desc=p["desc"], ready=content.ready_count(p), items=items,
+    return jsonify(id=p["id"], title=p["title"], desc=p["desc"], author=p.get("author", ""),
+                   ready=content.ready_count(p), items=items,
                    algos=algos.pack_algos(p["id"], g.user["id"], done))
 
 
@@ -141,7 +143,7 @@ def _lesson_json(L):
             # правильный ответ и пояснение отдаёт только POST /why
             "why": {"q": why["q"], "opts": list(why["opts"])} if why else None,
         })
-    out = {k: L[k] for k in ("id", "title", "tag", "desc", "task", "imports", "cls")}
+    out = {k: L[k] for k in ("id", "title", "tag", "desc", "task", "imports", "cls", "author")}
     if "change" in L:
         out["change"] = L["change"]
     out.update(code=content.full_code(L), body=content.class_body(L),
@@ -366,5 +368,5 @@ def ai_advice():
 
 
 algos.register(bp)
-desk.register(bp)
+editor.register(bp)
 assign.register(bp)
