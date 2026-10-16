@@ -80,4 +80,5 @@ def default_config(instance_path):
         AIMAKER_MAX_TOKENS=_int("AIMAKER_MAX_TOKENS", 8000),
         AIMAKER_TIMEOUT=_int("AIMAKER_TIMEOUT", 100),  # общий бюджет секунд на все модели; gunicorn --timeout 120
         AIMAKER_DAILY=_int("AIMAKER_DAILY", 10),
+        AIMAKER_PROBLEMS_DAILY=_int("AIMAKER_PROBLEMS_DAILY", 25),  # задачи и «починить через ИИ»; свой счётчик
     )

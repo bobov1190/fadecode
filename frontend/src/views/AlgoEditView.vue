@@ -15,6 +15,8 @@ const busy = ref(false);
 const packs = ref([]);
 const lessons = ref([]);
 const form = reactive({ title: "", tag: "алгоритм", desc: "", pack: "", template: "", variations: [], problems: [] });
+// AiMaker для задач: ИИ собирает черновик, браузер проверяет его в Python (эталон должен пройти, заготовка pass должна упасть)
+const pm = reactive({ open: true, idea: "", level: "medium", fn: "", num: "", notes: "", busy: false, stage: "", info: "" });
 
 let seq = 0;
 const SKELETON = {
@@ -95,14 +97,76 @@ async function run(p) {
   play(r.status === "ok" ? "win" : "err");
 }
 
+function problemBody(p) {
+  return {
+    id: p.id, num: p.num === "" ? null : p.num, title: p.title, level: p.level, fn: p.fn, statement: p.statement,
+    examples: lines(p.examples), hints: lines(p.hints), starter: p.starter, reference: p.reference,
+    insight: p.insight, pre: p.pre, tests: p.tests,
+  };
+}
+
+// Эталон должен пройти тесты, а пустая заготовка (pass) должна на них упасть: иначе тесты ничего не проверяют.
+async function verify(p) {
+  pm.stage = "Проверяю эталон в Python…";
+  await run(p);
+  if (p.check.state !== "ok") return;
+  pm.stage = "Проверяю, что заготовка падает…";
+  const s = await runTests({ code: p.starter, pre: p.pre, tests: p.tests }, () => {});
+  if (s.status === "ok") p.check = { state: "fail", msg: "Заготовка (pass) проходит тесты: они ничего не проверяют. Нажми «Починить через ИИ» или усиль тесты." };
+}
+
+async function generateProblem() {
+  if (pm.busy || !pm.idea.trim()) return;
+  pm.busy = true;
+  pm.stage = "Генерирую, это до минуты…";
+  pm.info = "";
+  error.value = "";
+  try {
+    const r = await api.post("/admin/aimaker/problem", {
+      idea: pm.idea, level: pm.level, fn: pm.fn, num: pm.num === "" ? null : pm.num, notes: pm.notes,
+      template: form.template, topic: form.title, titles: form.problems.map(p => p.title).filter(Boolean),
+    });
+    const p = Object.assign(fromServer(r.draft), { open: true, warns: r.problems });
+    form.problems.push(p);
+    pm.idea = "";
+    pm.info = "Модель: " + r.model + ". Осталось генераций задач сегодня: " + r.left + ". Новая задача добавлена в конец списка, черновик не сохранён.";
+    play(r.problems.length ? "warn" : "ok");
+    await verify(p);
+  } catch (e) {
+    error.value = e.message;
+    play("err");
+  } finally {
+    pm.busy = false;
+  }
+}
+
+async function fixProblem(p) {
+  if (pm.busy || !p.check || (p.check.state !== "fail" && p.check.state !== "error")) return;
+  pm.busy = true;
+  pm.stage = "ИИ чинит задачу, это до минуты…";
+  error.value = "";
+  try {
+    const r = await api.post("/admin/aimaker/problem", {
+      fix: { draft: problemBody(p), error: p.check.msg }, idea: p.title, level: p.level, fn: p.fn,
+      template: form.template, topic: form.title,
+    });
+    const n = fromServer(r.draft);
+    Object.assign(p, { title: n.title, fn: n.fn, statement: n.statement, examples: n.examples, hints: n.hints,
+      starter: n.starter, reference: n.reference, insight: n.insight, pre: n.pre, tests: n.tests, warns: r.problems, check: null });
+    pm.info = "Исправлено моделью " + r.model + ". Осталось генераций задач сегодня: " + r.left + ".";
+    await verify(p);
+  } catch (e) {
+    error.value = e.message;
+    play("err");
+  } finally {
+    pm.busy = false;
+  }
+}
+
 function bodyOf() {
   return {
     title: form.title, tag: form.tag, desc: form.desc, pack: form.pack, template: form.template, variations: form.variations,
-    problems: form.problems.map(p => ({
-      id: p.id, num: p.num === "" ? null : p.num, title: p.title, level: p.level, fn: p.fn, statement: p.statement,
-      examples: lines(p.examples), hints: lines(p.hints), starter: p.starter, reference: p.reference,
-      insight: p.insight, pre: p.pre, tests: p.tests,
-    })),
+    problems: form.problems.map(problemBody),
   };
 }
 
@@ -167,6 +231,7 @@ async function save() {
           <button class="btn s g ib" type="button" aria-label="Убрать задачу" @click="removeProblem(i)">✕</button>
         </div>
         <template v-if="p.open">
+          <div v-for="(w, wi) in (p.warns || [])" :key="wi" class="flash bad" role="alert">{{ w }}</div>
           <div class="two">
             <label>Сложность
               <select v-model="p.level"><option value="easy">easy</option><option value="medium">medium</option><option value="hard">hard</option></select>
@@ -192,8 +257,37 @@ async function save() {
           <label>Разбор «в чём идея» (показывается после решения)<textarea v-model="p.insight" rows="3" maxlength="2000"></textarea></label>
           <div class="row">
             <button class="btn s" type="button" :disabled="p.check && p.check.state === 'run'" @click="run(p)">Прогнать эталон</button>
+            <button v-if="p.check && (p.check.state === 'fail' || p.check.state === 'error')" class="btn s" type="button" :disabled="pm.busy" @click="fixProblem(p)">Починить через ИИ</button>
             <span v-if="p.check" :class="p.check.state === 'ok' ? 'g-good' : 'g-again'" style="white-space:pre-wrap">{{ p.check.msg }}</span>
           </div>
+        </template>
+      </div>
+
+      <div class="eblock">
+        <div class="ehead">
+          <span class="num">AI</span>
+          <strong class="grow">AiMaker: ИИ соберёт задачу на этот шаблон</strong>
+          <button class="btn s g" type="button" @click="pm.open = !pm.open">{{ pm.open ? "Свернуть" : "Развернуть" }}</button>
+        </div>
+        <template v-if="pm.open">
+          <p class="muted" style="margin:0">ИИ напишет условие, эталон, заготовку, подсказки и тесты. Потом браузер сам проверит: эталон должен пройти тесты, а заготовка с pass должна упасть. Если что-то не так, появится кнопка «Починить через ИИ».</p>
+          <label>Идея задачи<input v-model="pm.idea" maxlength="600" placeholder="Например, LeetCode 121: лучшее время для покупки акций"></label>
+          <div class="two">
+            <label>Сложность
+              <select v-model="pm.level"><option value="easy">easy</option><option value="medium">medium</option><option value="hard">hard</option></select>
+            </label>
+            <label>Метод (fn, необязательно)<input v-model="pm.fn" class="mono" maxlength="40" spellcheck="false" placeholder="maxProfit"></label>
+          </div>
+          <div class="two">
+            <label>Номер LeetCode (необязательно)<input v-model="pm.num" type="number" min="0"></label>
+            <label>Пожелания (необязательно)<input v-model="pm.notes" maxlength="600" placeholder="Например, упор на крайние случаи"></label>
+          </div>
+          <div>
+            <button class="btn p" type="button" :disabled="pm.busy || !pm.idea.trim()" @click="generateProblem">
+              {{ pm.busy ? pm.stage : "Сгенерировать задачу" }}
+            </button>
+          </div>
+          <p v-if="pm.info" class="muted" style="margin:0">{{ pm.info }}</p>
         </template>
       </div>
 

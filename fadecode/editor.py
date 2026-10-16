@@ -370,7 +370,8 @@ def register(bp):
         _reload(con)
         return jsonify(ok=True)
 
-    from . import aimaker, algoeditor
+    from . import aimaker, aimakerp, algoeditor
 
     aimaker.register(bp, guard)
+    aimakerp.register(bp, guard)
     algoeditor.register(bp, guard)
