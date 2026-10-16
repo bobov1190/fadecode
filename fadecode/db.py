@@ -225,6 +225,37 @@ SCHEMA_CONTENT = [
         done_at BIGINT
     )""",
     "CREATE INDEX IF NOT EXISTS desk_tasks_user ON desk_tasks(user_id, created)",
+    """CREATE TABLE IF NOT EXISTS profiles (
+        user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        full_name TEXT NOT NULL
+    )""",
+    """CREATE TABLE IF NOT EXISTS assignments (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        lessons TEXT NOT NULL,
+        minutes INTEGER NOT NULL,
+        max_score INTEGER NOT NULL DEFAULT 100,
+        created BIGINT NOT NULL,
+        owner BIGINT
+    )""",
+    """CREATE TABLE IF NOT EXISTS assign_attempts (
+        assignment_id TEXT NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        started BIGINT NOT NULL,
+        finished BIGINT,
+        PRIMARY KEY (assignment_id, user_id)
+    )""",
+    """CREATE TABLE IF NOT EXISTS assign_log (
+        assignment_id TEXT NOT NULL,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        t BIGINT NOT NULL,
+        lesson TEXT NOT NULL,
+        block TEXT NOT NULL DEFAULT '',
+        kind TEXT NOT NULL,
+        val INTEGER NOT NULL DEFAULT 0
+    )""",
+    "CREATE INDEX IF NOT EXISTS assign_log_key ON assign_log(assignment_id, user_id)",
 ]
 
 

@@ -80,3 +80,36 @@
 .ibtn{background:none;border:0;color:var(--mut);padding:2px 7px;border-radius:6px;font-size:14px;line-height:1.5}
 .ibtn:hover:not(:disabled){color:var(--text);background:var(--bg3)}
 @media(max-width:700px){.stat b{font-size:22px}.stat{padding:14px}}
+
+/* Задания с таймером и админка */
+.abar{position:sticky;top:64px;z-index:9;display:flex;justify-content:center;align-items:center;gap:14px;padding:6px 16px;background:var(--bg2);border-bottom:1px solid var(--line);text-decoration:none;font-size:14px;color:var(--mut)}
+.abar-c{font:700 16px "JetBrains Mono",monospace;color:var(--g2)}
+.abar.low .abar-c{color:var(--bad)}
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(5,7,6,.85);backdrop-filter:blur(4px)}
+.modal-box{max-width:420px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:26px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.chip{font:500 13px "JetBrains Mono",monospace;padding:5px 10px;border-radius:8px;border:1px solid var(--line);color:var(--mut)}
+.start,.aform{display:grid;gap:14px;max-width:560px;margin:22px 0}
+.start label,.aform label{display:grid;gap:6px;font-size:14px;color:var(--mut)}
+.start input,.aform input,.aform textarea{background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit}
+.start input:focus,.aform input:focus,.aform textarea:focus{outline:0;border-color:var(--g)}
+.aform{max-width:720px;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--bg3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.picks{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pick{display:inline-flex;gap:8px;align-items:center}
+.pick b{font:700 12px "JetBrains Mono",monospace;background:var(--g);color:#08100a;border-radius:6px;padding:1px 6px}
+.bigtimer{display:flex;flex-direction:column;margin:22px 0 4px}
+.bigtimer span,.bigscore span,.bigscore em{color:var(--mut);font-size:14px;font-style:normal}
+.bigtimer b{font:700 48px "JetBrains Mono",monospace;color:var(--g2)}
+.bigtimer.low b{color:var(--bad)}
+.bigscore{display:flex;flex-direction:column;margin:22px 0}
+.bigscore b{font:700 52px "JetBrains Mono",monospace;color:var(--g2)}
+.bigscore small{font-size:20px;color:var(--mut)}
+.bd{margin:16px 0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
+.bd-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.bd-h b{font-family:"JetBrains Mono",monospace;color:var(--g2)}
+.bd-r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--line);font-size:14px;color:var(--mut)}
+.bd-r span:first-child{color:var(--text)}
+tr.detail td{background:var(--bg3)}
+.rowbtns{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+@media(max-width:700px){.two{grid-template-columns:1fr}.abar{top:56px}.bigtimer b{font-size:40px}}

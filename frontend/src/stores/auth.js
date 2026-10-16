@@ -16,15 +16,15 @@ export const useAuth = defineStore("auth", {
       }
       this.ready = true;
     },
-    async enter(path, username, password) {
-      const r = await api.auth(path, { username, password });
+    async enter(path, username, password, name) {
+      const r = await api.auth(path, name ? { username, password, name } : { username, password });
       this.token = r.token;
       tokenStore.set(r.token);
       this.user = r.user;
       await this.refreshDue();
     },
     login(u, p) { return this.enter("/auth/login", u, p); },
-    register(u, p) { return this.enter("/auth/register", u, p); },
+    register(u, p, name) { return this.enter("/auth/register", u, p, name); },
     async refreshDue() {
       try { this.due = (await api.get("/me")).due; } catch (e) { /* счётчик не критичен */ }
     },

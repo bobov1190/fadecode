@@ -16,6 +16,9 @@ const router = createRouter({
     { path: "/lessons/:lid/done", name: "lesson-done", component: () => import("./views/LessonDoneView.vue"), meta: { auth: true, tab: "home" } },
         { path: "/review", name: "review", component: () => import("./views/ReviewView.vue"), meta: { ai: true, auth: true, tab: "review" } },
         { path: "/stats", name: "stats", component: () => import("./views/StatsView.vue"), meta: { auth: true, tab: "stats" } },
+    { path: "/a/:aid", name: "assign", component: () => import("./views/AssignView.vue"), meta: { auth: true, tab: "home" } },
+    { path: "/admin", name: "admin", component: () => import("./views/AdminView.vue"), meta: { auth: true, admin: true, tab: "admin" } },
+    { path: "/admin/:aid", name: "admin-results", component: () => import("./views/AdminResultsView.vue"), meta: { auth: true, admin: true, tab: "admin" } },
     { path: "/desk", name: "desk", component: () => import("./views/DeskView.vue"), meta: { auth: true, admin: true, tab: "desk" } },
     { path: "/algos/:aid", name: "algo", component: () => import("./views/AlgoView.vue"), meta: { auth: true, tab: "home" } },
     { path: "/problems/:pid", name: "problem", component: () => import("./views/ProblemView.vue"), meta: { ai: true, auth: true, tab: "home" } },
@@ -32,10 +35,10 @@ router.beforeEach(async to => {
   const first = !landed;
   landed = true;
   const admin = !!(a.user && a.user.is_admin);
-  if (to.meta.auth && !a.user) return { name: "login" };
-  if (to.meta.guest && a.user) return { name: admin ? "desk" : "home" };
+  if (to.meta.auth && !a.user) return { name: "login", query: to.fullPath !== "/" ? { next: to.fullPath } : {} };
+  if (to.meta.guest && a.user) return { name: admin ? "admin" : "home" };
   if (to.meta.admin && !admin) return { name: "home" };
-  if (first && to.name === "home" && admin) return { name: "desk" };
+  if (first && to.name === "home" && admin) return { name: "admin" };
 });
 
 export default router;

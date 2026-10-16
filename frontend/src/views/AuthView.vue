@@ -10,6 +10,7 @@ const router = useRouter();
 const isReg = computed(() => route.name === "register");
 const username = ref("");
 const password = ref("");
+const fullName = ref("");
 const error = ref("");
 const busy = ref(false);
 const form = ref(null);
@@ -19,9 +20,10 @@ async function submit() {
   error.value = "";
   busy.value = true;
   try {
-    await (isReg.value ? auth.register : auth.login)(username.value.trim(), password.value);
+    await (isReg.value ? auth.register(username.value.trim(), password.value, fullName.value.trim()) : auth.login(username.value.trim(), password.value));
     play("win");
-    router.push({ name: auth.user && auth.user.is_admin ? "desk" : "home" });
+    const next = String(route.query.next || "");
+    router.push(next.startsWith("/") && !next.startsWith("//") ? next : { name: auth.user && auth.user.is_admin ? "admin" : "home" });
   } catch (e) {
     error.value = e.message;
     play("err");
@@ -42,14 +44,17 @@ async function submit() {
       <label>Логин
         <input v-model="username" autocomplete="username" required minlength="3" maxlength="32" autofocus>
       </label>
+      <label v-if="isReg">Имя и фамилия (по ним учитель найдёт твой балл)
+        <input v-model="fullName" autocomplete="name" maxlength="80" placeholder="Иван Петров">
+      </label>
       <label>Пароль
         <input v-model="password" type="password" :autocomplete="isReg ? 'new-password' : 'current-password'" required minlength="6">
       </label>
       <button class="btn p" type="submit" :disabled="busy">{{ busy ? "Секунду…" : isReg ? "Зарегистрироваться" : "Войти" }}</button>
     </form>
     <p class="alt">
-      <template v-if="isReg">Уже есть аккаунт? <RouterLink :to="{ name: 'login' }">Войти</RouterLink></template>
-      <template v-else>Нет аккаунта? <RouterLink :to="{ name: 'register' }">Зарегистрироваться</RouterLink></template>
+      <template v-if="isReg">Уже есть аккаунт? <RouterLink :to="{ name: 'login', query: route.query }">Войти</RouterLink></template>
+      <template v-else>Нет аккаунта? <RouterLink :to="{ name: 'register', query: route.query }">Зарегистрироваться</RouterLink></template>
     </p>
   </div>
 </template>

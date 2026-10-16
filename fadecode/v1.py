@@ -11,7 +11,7 @@ import time
 from flask import Blueprint, g, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import algos, api, auth, content, core, db, desk
+from . import algos, api, assign, auth, content, core, db, desk
 from .api import ApiError
 
 bp = Blueprint("v1", __name__)
@@ -38,7 +38,7 @@ def _guard():
 
 
 def _user(u):
-    return {"id": u["id"], "username": u["username"], "is_admin": db.is_admin(u["id"])}
+    return {"id": u["id"], "username": u["username"], "is_admin": db.is_admin(u["id"]), "name": assign.get_name(u["id"])}
 
 
 def _due(uid):
@@ -61,6 +61,8 @@ def register():
     uid = db.create_user(username, generate_password_hash(password, method=auth.HASH_METHOD))
     if uid is None:
         raise ApiError("Такой логин уже занят.", 409)
+    if d.get("name"):
+        assign.set_name(uid, d["name"])
     user = db.get_user(uid)
     return jsonify(token=auth.make_token(user), user=_user(user)), 201
 
@@ -180,6 +182,7 @@ def _resolve(L, bid, how, status, d, **extra):
         grade = "good"
     else:
         grade = "hard"
+    assign.record(uid, L["id"], how, bid)
     if bid != "whole":
         db.srs_update(uid, "%s::%s" % (L["id"], bid), grade)
     db.log_event(uid, "resolve", {"lesson": L["id"], "block": bid, "how": how, "status": status,
@@ -201,6 +204,7 @@ def check():
                                          "score": round(r["score"], 3), "attempt": attempts, "hints": hints})
     if r["status"] in ("perfect", "renamed"):
         return jsonify(_resolve(L, bid, "ok", r["status"], d))
+    assign.record(g.user["id"], L["id"], "wrong", bid)
     # extra: индексы лишних токенов ответа; ins: [[позиция, подсказка]] о пропущенном. Подсвечивает клиент (core.js).
     return jsonify(resolved=False, status=r["status"], score=round(r["score"] * 100), extra=sorted(r["extra"]),
                    missed_count=len(r["missed"]), ins=sorted([k, v] for k, v in r["ins"].items()))
@@ -234,6 +238,7 @@ def hint():
     lines = content.slot_target(L, bid).split("\n")
     n = min(_int(d, "n", 1, 10000, 1), len(lines))
     db.log_event(g.user["id"], "hint", {"lesson": L["id"], "block": bid, "n": n})
+    assign.record(g.user["id"], L["id"], "hint", bid, n)
     return jsonify(lines=lines[:n], n=n, total=len(lines))
 
 
@@ -254,7 +259,9 @@ def why():
 def copy_done():
     d = _body()
     L = _lesson(d)
-    db.log_event(g.user["id"], "copy", {"lesson": L["id"], "errors": _int(d, "errors", 0, 100000, 0)})
+    errs = _int(d, "errors", 0, 100000, 0)
+    db.log_event(g.user["id"], "copy", {"lesson": L["id"], "errors": errs})
+    assign.record(g.user["id"], L["id"], "copy", "", errs)
     return jsonify(ok=True)
 
 
@@ -360,3 +367,4 @@ def ai_advice():
 
 algos.register(bp)
 desk.register(bp)
+assign.register(bp)
