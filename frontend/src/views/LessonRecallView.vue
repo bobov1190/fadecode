@@ -70,7 +70,7 @@ onMounted(async () => {
         </div>
         <div class="dots"><i v-for="i in N + 1" :key="i" :class="{ on: i < r, cur: i === r }"></i></div>
       </div>
-      <div class="task"><div class="eyebrow">Задача</div><p>{{ L.task }}</p></div>
+      <div class="task"><div class="eyebrow">{{ L.algo ? "Что выучим" : "Задача" }}</div><p>{{ L.task }}</p></div>
       <div class="codebox">
         <LessonListing :L="L" :missing="missing" :whole="whole" mode="recall" @resolved="onResolved" />
       </div>
