@@ -39,6 +39,35 @@ onMounted(async () => {
   }
 });
 
+// ---------- AiMaker: ИИ собирает черновик, ничего не сохраняет ----------
+const maker = reactive({ open: isNew.value, topic: "", goal: "", stack: "Python", level: "medium", n_methods: 3, notes: "", busy: false, problems: [], info: "" });
+
+async function generate() {
+  if (maker.busy) return;
+  const hasWork = form.title || form.blocks.some(b => b.name || b.code);
+  if (hasWork && !confirm("Форма уже заполнена. Заменить её черновиком от ИИ?")) return;
+  maker.busy = true;
+  maker.problems = [];
+  maker.info = "";
+  error.value = "";
+  try {
+    const r = await api.post("/admin/aimaker/lesson", {
+      topic: maker.topic, goal: maker.goal, stack: maker.stack, level: maker.level, n_methods: maker.n_methods, notes: maker.notes,
+    });
+    const D = r.draft;
+    Object.assign(form, { title: D.title, tag: D.tag, desc: D.desc, task: D.task, imports: D.imports, cls: D.cls || form.cls });
+    form.blocks = D.blocks.length ? D.blocks.map(fromServer) : [blank()];
+    maker.problems = r.problems;
+    maker.info = "Модель: " + r.model + ". Осталось генераций сегодня: " + r.left + ". Проверь черновик и нажми «Сохранить».";
+    play(r.problems.length ? "warn" : "win");
+  } catch (e) {
+    error.value = e.message;
+    play("err");
+  } finally {
+    maker.busy = false;
+  }
+}
+
 const rowsOf = s => Math.max(3, String(s || "").split("\n").length + 1);
 const preview = computed(() => {
   const body = form.cls + "\n" + form.blocks.map(b => indent(b.code || "")).join("\n\n");
@@ -117,6 +146,35 @@ async function save() {
     <p v-if="!ready && !error" class="muted">Загружаю…</p>
 
     <form v-if="ready" class="aform eform" @submit.prevent="save">
+      <div class="eblock">
+        <div class="ehead">
+          <span class="num">AI</span>
+          <strong class="grow">AiMaker: ИИ соберёт черновик карточки</strong>
+          <button class="btn s g" type="button" @click="maker.open = !maker.open">{{ maker.open ? "Свернуть" : "Развернуть" }}</button>
+        </div>
+        <template v-if="maker.open">
+          <label>Тема или алгоритм<input v-model="maker.topic" maxlength="200" placeholder="Например, Стек: монотонный стек"></label>
+          <label>Что должен уметь написать ученик<input v-model="maker.goal" maxlength="400" placeholder="Например, находить следующий больший элемент за O(n)"></label>
+          <div class="two">
+            <label>Язык и библиотеки<input v-model="maker.stack" maxlength="120"></label>
+            <label>Сложность
+              <select v-model="maker.level"><option value="easy">easy</option><option value="medium">medium</option><option value="hard">hard</option></select>
+            </label>
+          </div>
+          <div class="two">
+            <label>Сколько методов (1-6)<input v-model.number="maker.n_methods" type="number" min="1" max="6"></label>
+            <label>Пожелания (необязательно)<input v-model="maker.notes" maxlength="600" placeholder="Например, упор на крайние случаи"></label>
+          </div>
+          <div>
+            <button class="btn p" type="button" :disabled="maker.busy || !maker.topic.trim() || !maker.goal.trim()" @click="generate">
+              {{ maker.busy ? "Генерирую, это до минуты…" : "Сгенерировать" }}
+            </button>
+          </div>
+          <p v-if="maker.info" class="muted">{{ maker.info }}</p>
+          <div v-for="(p, i) in maker.problems" :key="i" class="flash bad" role="alert">{{ p }}</div>
+        </template>
+      </div>
+
       <label>Название<input v-model="form.title" required maxlength="120" placeholder="Например, Бинарный поиск: границы"></label>
       <div class="two">
         <label>Тег<input v-model="form.tag" maxlength="80" placeholder="основы, графы…"></label>

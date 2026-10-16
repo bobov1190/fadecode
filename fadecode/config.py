@@ -71,4 +71,13 @@ def default_config(instance_path):
         AI_DAILY_USER=_int("AI_DAILY_USER", 30),
         AI_TIMEOUT=_int("AI_TIMEOUT", 45),
         AI_MAX_TOKENS=_int("AI_MAX_TOKENS", 700),
+        # AiMaker (генерация карточек в редакторе): свои модели, большой лимит токенов и свой дневной счётчик.
+        # Список проверен по openrouter.ai/collections/free-models на 17.10.2026; свободные модели меняются, см. list_models.bat
+        AIMAKER_MODELS=[m.strip() for m in os.environ.get(
+            "AIMAKER_MODELS",
+            "nvidia/nemotron-3-ultra-550b-a55b:free,poolside/laguna-s-2.1:free,"
+            "thinkingmachines/inkling:free,nvidia/nemotron-3-super-120b-a12b:free").split(",") if m.strip()],
+        AIMAKER_MAX_TOKENS=_int("AIMAKER_MAX_TOKENS", 8000),
+        AIMAKER_TIMEOUT=_int("AIMAKER_TIMEOUT", 100),  # общий бюджет секунд на все модели; gunicorn --timeout 120
+        AIMAKER_DAILY=_int("AIMAKER_DAILY", 10),
     )

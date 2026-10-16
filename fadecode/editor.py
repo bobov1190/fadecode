@@ -369,3 +369,7 @@ def register(bp):
         con.executemany("UPDATE packs SET position=? WHERE id=?", [(i, str(x)) for i, x in enumerate(ids)])
         _reload(con)
         return jsonify(ok=True)
+
+    from . import aimaker
+
+    aimaker.register(bp, guard)
