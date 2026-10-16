@@ -5,12 +5,14 @@ import { api } from "../api";
 import { play } from "../lib/sfx";
 
 const data = ref(null);
+const algoList = ref([]);
 const error = ref("");
 const note = ref("");
 
 async function load() {
   try {
     data.value = await api.get("/admin/content");
+    algoList.value = (await api.get("/admin/algos")).algos;
   } catch (e) {
     error.value = e.message;
   }
@@ -37,6 +39,19 @@ async function removePack(p) {
   try {
     await api.del("/admin/packs/" + p.id);
     note.value = "Пак удалён.";
+    await load();
+  } catch (e) {
+    error.value = e.message;
+    play("err");
+  }
+}
+
+async function removeAlgo(a) {
+  if (!confirm("Удалить алгоритм «" + a.title + "» вместе с задачами? Прогресс учеников по задачам пропадёт.")) return;
+  error.value = "";
+  try {
+    await api.del("/admin/algos/" + a.id);
+    note.value = "Алгоритм удалён.";
     await load();
   } catch (e) {
     error.value = e.message;
@@ -71,6 +86,7 @@ onMounted(load);
     <div class="actions">
       <RouterLink class="btn p" :to="{ name: 'editor-pack', params: { pid: 'new' } }">+ Новый пак</RouterLink>
       <RouterLink class="btn" :to="{ name: 'editor-lesson', params: { lid: 'new' } }">+ Новая карточка</RouterLink>
+      <RouterLink class="btn" :to="{ name: 'editor-algo', params: { aid: 'new' } }">+ Новый алгоритм</RouterLink>
     </div>
 
     <p v-if="!data && !error" class="muted">Загружаю…</p>
@@ -88,6 +104,18 @@ onMounted(load);
             <button class="btn s g ib" type="button" :disabled="i === data.packs.length - 1" aria-label="Ниже" @click="move(i, 1)">↓</button>
             <RouterLink class="btn s p" :to="{ name: 'editor-pack', params: { pid: p.id } }">Править</RouterLink>
             <button class="btn s g" type="button" @click="removePack(p)">Удалить</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">Алгоритмы и задачи · {{ algoList.length }}</div>
+      <div class="erows">
+        <div v-for="(a, i) in algoList" :key="a.id" class="erow">
+          <span class="n">{{ i + 1 }}</span>
+          <div><b>{{ a.title }}</b><span class="sub">{{ a.problems }} задач · {{ a.tag || "без тега" }}</span></div>
+          <div class="tools">
+            <RouterLink class="btn s p" :to="{ name: 'editor-algo', params: { aid: a.id } }">Править</RouterLink>
+            <button class="btn s g" type="button" @click="removeAlgo(a)">Удалить</button>
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ const router = createRouter({
     { path: "/editor", name: "editor", component: () => import("./views/EditorView.vue"), meta: { auth: true, admin: true, tab: "editor" } },
     { path: "/editor/pack/:pid", name: "editor-pack", component: () => import("./views/PackEditView.vue"), meta: { auth: true, admin: true, tab: "editor" } },
     { path: "/editor/lesson/:lid", name: "editor-lesson", component: () => import("./views/LessonEditView.vue"), meta: { auth: true, admin: true, tab: "editor" } },
+    { path: "/editor/algo/:aid", name: "editor-algo", component: () => import("./views/AlgoEditView.vue"), meta: { auth: true, admin: true, tab: "editor" } },
     { path: "/algos/:aid", name: "algo", component: () => import("./views/AlgoView.vue"), meta: { auth: true, tab: "home" } },
     { path: "/problems/:pid", name: "problem", component: () => import("./views/ProblemView.vue"), meta: { ai: true, auth: true, tab: "home" } },
     { path: "/:rest(.*)*", name: "404", component: Soon, props: { title: "Страница не найдена" } },
