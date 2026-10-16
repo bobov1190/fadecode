@@ -37,6 +37,7 @@ export const api = {
   get: (path) => request("GET", path),
   post: (path, body) => request("POST", path, body || {}),
   put: (path, body) => request("PUT", path, body || {}),
+  del: (path) => request("DELETE", path),
   // вход и регистрация: 401 здесь значит «неверный пароль», а не «токен протух»
   auth: (path, body) => request("POST", path, body, { quiet401: true }),
 };

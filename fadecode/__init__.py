@@ -158,4 +158,25 @@ def create_app(test_config=None):
         else:
             click.echo("В базе уже есть контент. Чтобы перезаписать его из JSON: flask --app run seed --force")
 
+    @app.cli.command("create-admin")
+    @click.option("--username", required=True)
+    @click.option("--password", prompt=True, hide_input=True)
+    def create_admin_cmd(username, password):
+        """Создаёт аккаунт-админа (или делает админом существующий)."""
+        from werkzeug.security import generate_password_hash
+
+        user = db.get_user_by_name(username)
+        if user is None:
+            if not auth.USERNAME_RE.match(username):
+                raise click.ClickException("Логин: 3-32 символа, только латиница, цифры и _ . -")
+            if len(password) < 6:
+                raise click.ClickException("Пароль не короче 6 символов.")
+            uid = db.create_user(username, generate_password_hash(password, method=auth.HASH_METHOD))
+            click.echo("Аккаунт создан.")
+        else:
+            uid = user["id"]
+            click.echo("Аккаунт уже был, пароль не менял.")
+        db.make_admin(uid)
+        click.echo("Админ: %s" % username)
+
     return app

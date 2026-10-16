@@ -16,6 +16,7 @@ const router = createRouter({
     { path: "/lessons/:lid/done", name: "lesson-done", component: () => import("./views/LessonDoneView.vue"), meta: { auth: true, tab: "home" } },
         { path: "/review", name: "review", component: () => import("./views/ReviewView.vue"), meta: { ai: true, auth: true, tab: "review" } },
         { path: "/stats", name: "stats", component: () => import("./views/StatsView.vue"), meta: { auth: true, tab: "stats" } },
+    { path: "/desk", name: "desk", component: () => import("./views/DeskView.vue"), meta: { auth: true, admin: true, tab: "desk" } },
     { path: "/algos/:aid", name: "algo", component: () => import("./views/AlgoView.vue"), meta: { auth: true, tab: "home" } },
     { path: "/problems/:pid", name: "problem", component: () => import("./views/ProblemView.vue"), meta: { ai: true, auth: true, tab: "home" } },
     { path: "/:rest(.*)*", name: "404", component: Soon, props: { title: "Страница не найдена" } },
@@ -23,11 +24,18 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 });
 
+let landed = false;
+
 router.beforeEach(async to => {
   const a = useAuth();
   if (!a.ready) await a.load();
+  const first = !landed;
+  landed = true;
+  const admin = !!(a.user && a.user.is_admin);
   if (to.meta.auth && !a.user) return { name: "login" };
-  if (to.meta.guest && a.user) return { name: "home" };
+  if (to.meta.guest && a.user) return { name: admin ? "desk" : "home" };
+  if (to.meta.admin && !admin) return { name: "home" };
+  if (first && to.name === "home" && admin) return { name: "desk" };
 });
 
 export default router;

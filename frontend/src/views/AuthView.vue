@@ -21,7 +21,7 @@ async function submit() {
   try {
     await (isReg.value ? auth.register : auth.login)(username.value.trim(), password.value);
     play("win");
-    router.push({ name: "home" });
+    router.push({ name: auth.user && auth.user.is_admin ? "desk" : "home" });
   } catch (e) {
     error.value = e.message;
     play("err");

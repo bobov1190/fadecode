@@ -44,12 +44,13 @@ onBeforeUnmount(() => { document.removeEventListener("click", onDoc); document.r
 <template>
   <header class="top">
     <div class="in">
-      <RouterLink class="logo" :to="{ name: 'home' }" aria-label="Fadecode">
+      <RouterLink class="logo" :to="{ name: auth.user && auth.user.is_admin ? 'desk' : 'home' }" aria-label="Fadecode">
         <img class="lg-full" src="/logo-dark.svg" alt="Fadecode">
         <img class="lg-mark" src="/mark.svg" alt="">
       </RouterLink>
 
       <nav v-if="auth.user" class="tabs" aria-label="Разделы">
+        <RouterLink v-if="auth.user.is_admin" class="tab" :class="{ on: tab === 'desk' }" :to="{ name: 'desk' }">Доска</RouterLink>
         <RouterLink class="tab" :class="{ on: tab === 'home' }" :to="{ name: 'home' }">Уроки</RouterLink>
         <RouterLink class="tab" :class="{ on: tab === 'review' }" :to="{ name: 'review' }">
           Повторение<span v-if="auth.due" class="badge">{{ auth.due }}</span>

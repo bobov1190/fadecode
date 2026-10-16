@@ -209,6 +209,22 @@ SCHEMA_CONTENT = [
         at BIGINT NOT NULL,
         PRIMARY KEY (user_id, algo_id)
     )""",
+    """CREATE TABLE IF NOT EXISTS admins (
+        user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE
+    )""",
+    """CREATE TABLE IF NOT EXISTS desk_tasks (
+        id TEXT PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'idea',
+        est_min INTEGER NOT NULL DEFAULT 30,
+        spent_sec INTEGER NOT NULL DEFAULT 0,
+        timer_at BIGINT,
+        created BIGINT NOT NULL,
+        done_at BIGINT
+    )""",
+    "CREATE INDEX IF NOT EXISTS desk_tasks_user ON desk_tasks(user_id, created)",
 ]
 
 
@@ -384,6 +400,18 @@ def get_user_by_name(username):
     return get_db().execute(
         "SELECT id, username, pw_hash, created FROM users WHERE lower(username)=lower(?)", (username,)
     ).fetchone()
+
+
+# ---------- админы ----------
+
+def is_admin(uid):
+    return get_db().execute("SELECT 1 AS x FROM admins WHERE user_id=?", (uid,)).fetchone() is not None
+
+
+def make_admin(uid):
+    con = get_db()
+    con.execute("INSERT INTO admins(user_id) VALUES (?) ON CONFLICT (user_id) DO NOTHING", (uid,))
+    con.commit()
 
 
 # ---------- настройки ----------

@@ -11,7 +11,7 @@ import time
 from flask import Blueprint, g, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import algos, api, auth, content, core, db
+from . import algos, api, auth, content, core, db, desk
 from .api import ApiError
 
 bp = Blueprint("v1", __name__)
@@ -38,7 +38,7 @@ def _guard():
 
 
 def _user(u):
-    return {"id": u["id"], "username": u["username"]}
+    return {"id": u["id"], "username": u["username"], "is_admin": db.is_admin(u["id"])}
 
 
 def _due(uid):
@@ -359,3 +359,4 @@ def ai_advice():
 
 
 algos.register(bp)
+desk.register(bp)

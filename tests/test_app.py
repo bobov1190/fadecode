@@ -718,3 +718,83 @@ class AlgoTests(AppCase):
         msgs = ai.problem_messages(algos.PROBLEMS["bs_704"], "code", "err", [], "вопрос")
         self.assertIn("code", msgs[0]["content"])
         self.assertIn(algos.PROBLEMS["bs_704"]["reference"], msgs[0]["content"])
+
+
+# ---------- desk (admin) ----------
+
+class DeskTests(AppCase):
+    def api(self, method, path, token=None, **body):
+        headers = {"Authorization": "Bearer " + token} if token else {}
+        return self.c.open("/api/v1" + path, method=method, json=body or None, headers=headers)
+
+    def signup(self, name="alice"):
+        r = self.api("POST", "/auth/register", username=name, password="secret1")
+        self.assertEqual(r.status_code, 201)
+        return r.get_json()["token"], r.get_json()["user"]["id"]
+
+    def admin(self):
+        tok, uid = self.signup("boss")
+        with self.app.app_context():
+            db.make_admin(uid)
+        return tok
+
+    def test_non_admin_forbidden(self):
+        tok, _ = self.signup()
+        self.assertFalse(self.api("GET", "/me", tok).get_json()["user"]["is_admin"])
+        self.assertEqual(self.api("GET", "/desk", tok).status_code, 403)
+        self.assertEqual(self.api("POST", "/desk", tok, title="x").status_code, 403)
+        self.assertEqual(self.api("GET", "/desk").status_code, 401)
+
+    def test_task_lifecycle(self):
+        tok = self.admin()
+        self.assertTrue(self.api("GET", "/me", tok).get_json()["user"]["is_admin"])
+        self.assertEqual(self.api("POST", "/desk", tok, title="  ").status_code, 400)
+        self.assertEqual(self.api("POST", "/desk", tok, title="a", est_min=0).status_code, 400)
+        r = self.api("POST", "/desk", tok, title="Первая", est_min=60, note="n")
+        self.assertEqual(r.status_code, 201)
+        self.api("POST", "/desk", tok, title="Вторая")
+        tasks = self.api("GET", "/desk", tok).get_json()["tasks"]
+        self.assertEqual([t["title"] for t in tasks], ["Первая", "Вторая"])
+        self.assertEqual((tasks[0]["status"], tasks[0]["est_min"], tasks[1]["est_min"]), ("idea", 60, 30))
+        a, b = tasks[0]["id"], tasks[1]["id"]
+        t = {x["id"]: x for x in self.api("POST", "/desk/%s/start" % a, tok).get_json()["tasks"]}
+        self.assertEqual(t[a]["status"], "doing")
+        self.assertIsNotNone(t[a]["timer_at"])
+        t = {x["id"]: x for x in self.api("POST", "/desk/%s/start" % b, tok).get_json()["tasks"]}
+        self.assertIsNone(t[a]["timer_at"])
+        self.assertIsNotNone(t[b]["timer_at"])
+        t = {x["id"]: x for x in self.api("PUT", "/desk/%s" % b, tok, status="done").get_json()["tasks"]}
+        self.assertEqual(t[b]["status"], "done")
+        self.assertIsNone(t[b]["timer_at"])
+        self.assertIsNotNone(t[b]["done_at"])
+        self.assertEqual(self.api("POST", "/desk/%s/start" % b, tok).status_code, 400)
+        self.assertEqual(self.api("PUT", "/desk/%s" % b, tok, status="nope").status_code, 400)
+        t = {x["id"]: x for x in self.api("PUT", "/desk/%s" % b, tok, status="doing", title="Новая", est_min=15).get_json()["tasks"]}
+        self.assertEqual((t[b]["done_at"], t[b]["title"], t[b]["est_min"]), (None, "Новая", 15))
+        self.api("POST", "/desk/%s/stop" % a, tok)
+        self.assertEqual(self.api("DELETE", "/desk/%s" % a, tok).status_code, 200)
+        self.assertEqual(len(self.api("GET", "/desk", tok).get_json()["tasks"]), 1)
+        self.assertEqual(self.api("DELETE", "/desk/zzz", tok).status_code, 404)
+
+    def test_tasks_are_private(self):
+        tok = self.admin()
+        self.api("POST", "/desk", tok, title="секрет")
+        tid = self.api("GET", "/desk", tok).get_json()["tasks"][0]["id"]
+        tok2, uid2 = self.signup("boss2")
+        with self.app.app_context():
+            db.make_admin(uid2)
+        self.assertEqual(self.api("GET", "/desk", tok2).get_json()["tasks"], [])
+        self.assertEqual(self.api("PUT", "/desk/%s" % tid, tok2, title="x").status_code, 404)
+
+    def test_create_admin_command(self):
+        runner = self.app.test_cli_runner()
+        res = runner.invoke(args=["create-admin", "--username", "bahodir", "--password", "secret12"])
+        self.assertEqual(res.exit_code, 0, res.output)
+        r = self.api("POST", "/auth/login", username="bahodir", password="secret12")
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.get_json()["user"]["is_admin"])
+        again = runner.invoke(args=["create-admin", "--username", "bahodir", "--password", "other-pass"])
+        self.assertEqual(again.exit_code, 0)
+        self.assertEqual(self.api("POST", "/auth/login", username="bahodir", password="secret12").status_code, 200)
+        bad = runner.invoke(args=["create-admin", "--username", "x", "--password", "secret12"])
+        self.assertNotEqual(bad.exit_code, 0)
