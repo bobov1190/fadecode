@@ -1,6 +1,6 @@
 <script setup>
 /* Редактор алгоритма: шаблон-карточка, вариации и задачи. Эталон каждой задачи гоняется на её тестах прямо в браузере (Pyodide). */
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { api } from "../api";
 import { runTests } from "../lib/runner";
@@ -16,7 +16,7 @@ const packs = ref([]);
 const lessons = ref([]);
 const form = reactive({ title: "", tag: "алгоритм", desc: "", pack: "", template: "", variations: [], problems: [] });
 // AiMaker для задач: ИИ собирает черновик, браузер проверяет его в Python (эталон должен пройти, заготовка pass должна упасть)
-const pm = reactive({ open: true, idea: "", level: "medium", fn: "", num: "", notes: "", busy: false, stage: "", info: "" });
+const pm = reactive({ open: true, idea: "", level: "medium", fn: "", num: "", notes: "", busy: false, stage: "", info: "", error: "" });
 
 let seq = 0;
 const SKELETON = {
@@ -120,7 +120,7 @@ async function generateProblem() {
   pm.busy = true;
   pm.stage = "Генерирую, это до минуты…";
   pm.info = "";
-  error.value = "";
+  pm.error = "";
   try {
     const r = await api.post("/admin/aimaker/problem", {
       idea: pm.idea, level: pm.level, fn: pm.fn, num: pm.num === "" ? null : pm.num, notes: pm.notes,
@@ -131,9 +131,12 @@ async function generateProblem() {
     pm.idea = "";
     pm.info = "Модель: " + r.model + ". Осталось генераций задач сегодня: " + r.left + ". Новая задача добавлена в конец списка, черновик не сохранён.";
     play(r.problems.length ? "warn" : "ok");
+    await nextTick();
+    const el = document.getElementById("prob-" + p.key);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     await verify(p);
   } catch (e) {
-    error.value = e.message;
+    pm.error = e.message; // ошибку показываем под кнопкой, а не наверху страницы, где её не видно
     play("err");
   } finally {
     pm.busy = false;
@@ -144,7 +147,7 @@ async function fixProblem(p) {
   if (pm.busy || !p.check || (p.check.state !== "fail" && p.check.state !== "error")) return;
   pm.busy = true;
   pm.stage = "ИИ чинит задачу, это до минуты…";
-  error.value = "";
+  pm.error = "";
   try {
     const r = await api.post("/admin/aimaker/problem", {
       fix: { draft: problemBody(p), error: p.check.msg }, idea: p.title, level: p.level, fn: p.fn,
@@ -156,7 +159,7 @@ async function fixProblem(p) {
     pm.info = "Исправлено моделью " + r.model + ". Осталось генераций задач сегодня: " + r.left + ".";
     await verify(p);
   } catch (e) {
-    error.value = e.message;
+    p.warns = [e.message];
     play("err");
   } finally {
     pm.busy = false;
@@ -220,7 +223,7 @@ async function save() {
 
       <div class="eyebrow">Задачи ({{ form.problems.length }})</div>
 
-      <div v-for="(p, i) in form.problems" :key="p.key" class="eblock">
+      <div v-for="(p, i) in form.problems" :id="'prob-' + p.key" :key="p.key" class="eblock">
         <div class="ehead">
           <span class="num">{{ i + 1 }}</span>
           <input v-model="p.title" class="grow" required maxlength="120" placeholder="Название задачи">
@@ -287,6 +290,7 @@ async function save() {
               {{ pm.busy ? pm.stage : "Сгенерировать задачу" }}
             </button>
           </div>
+          <div v-if="pm.error" class="flash bad" role="alert" style="margin:0">{{ pm.error }}</div>
           <p v-if="pm.info" class="muted" style="margin:0">{{ pm.info }}</p>
         </template>
       </div>

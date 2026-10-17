@@ -2,6 +2,7 @@
 /* Плавающая панель ИИ-наставника. Видна на экранах урока и повторения. Контекст берётся из стора ai. */
 import { computed, nextTick, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import MascotCat from "./MascotCat.vue";
 import { useAi } from "../stores/ai";
 import { useAuth } from "../stores/auth";
 
@@ -42,9 +43,9 @@ watch(() => ai.problem || lessonId.value, id => { if (id) ai.resetFor(id); }, { 
 
 <template>
   <div v-if="visible" id="ai-root">
-    <button v-show="!ai.open" class="ai-fab" type="button" @click="open">ИИ-наставник</button>
+    <button v-show="!ai.open" class="ai-fab" type="button" title="ИИ-наставник" aria-label="Открыть ИИ-наставника" @click="open"><MascotCat shadow /></button>
     <section v-show="ai.open" class="ai-panel" aria-label="ИИ-наставник">
-      <div class="ai-head"><span>ИИ-наставник</span><button type="button" aria-label="Закрыть" @click="ai.open = false">×</button></div>
+      <div class="ai-head"><span><MascotCat />ИИ-наставник</span><button type="button" aria-label="Закрыть" @click="ai.open = false">×</button></div>
       <div ref="msgsEl" class="ai-msgs">
         <div v-if="!ai.msgs.length" class="ai-hello">Спроси, как подступиться к методу. Готовый код я не дам, но наведу на мысль и покажу, где в твоей попытке расхождение.</div>
         <div v-for="(m, i) in ai.msgs" :key="i" class="ai-msg" :class="[m.role, m.cls]">{{ m.text }}</div>

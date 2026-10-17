@@ -157,12 +157,11 @@ def register(bp, guard):
         used, _total = db.ai_counts(day, uid)
         if used >= cfg["AIMAKER_PROBLEMS_DAILY"]:
             raise ApiError("Дневной лимит AiMaker для задач (%d) исчерпан. Завтра обновится." % cfg["AIMAKER_PROBLEMS_DAILY"], 429)
-        db.ai_bump(day, uid)
-
         try:
             text, model = _generate([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}])
         except ai.AIError as e:
             raise ApiError(e.message, e.status)
+        db.ai_bump(day, uid)  # неудачные попытки лимит не тратят
         try:
             draft = _draft(_parse(text), level)
         except ValueError:

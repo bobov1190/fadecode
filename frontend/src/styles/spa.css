@@ -113,3 +113,20 @@
 tr.detail td{background:var(--bg3)}
 .rowbtns{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 @media(max-width:700px){.two{grid-template-columns:1fr}.abar{top:56px}.bigtimer b{font-size:40px}}
+
+/* Маскот: круглая кнопка ИИ-наставника и котик в шапке панели */
+.ai-fab{display:grid;place-items:center;width:62px;height:62px;padding:0;border-radius:50%;box-shadow:0 6px 24px rgba(0,0,0,.45),0 0 0 5px rgba(93,156,66,.12);transition:transform .15s,box-shadow .15s,border-color .15s}
+.ai-fab:hover{background:var(--bg2);color:inherit;border-color:var(--g2);box-shadow:0 8px 28px rgba(0,0,0,.5),0 0 0 7px rgba(134,199,101,.18)}
+.ai-fab .cat{width:44px;height:auto;display:block;transition:transform .2s}
+.ai-fab:hover .cat{transform:rotate(-7deg) scale(1.1)}
+.ai-head>span{display:flex;align-items:center;gap:8px}
+.ai-head .cat{width:28px;height:auto;flex:none}
+@media(prefers-reduced-motion:reduce){.ai-fab,.ai-fab .cat{transition:none}}
+
+/* Эпиграф на странице «Уроки» */
+.epi{margin-top:48px;padding:20px 24px;border-left:3px solid var(--g);background:linear-gradient(90deg,rgba(93,156,66,.08),transparent 70%);border-radius:0 12px 12px 0}
+.epi .eyebrow{margin-bottom:8px}
+.epi blockquote{margin:0;font-size:16.5px;line-height:1.75;color:#cdd8ca;font-style:italic;letter-spacing:.005em}
+.epi cite{display:block;margin-top:10px;font:400 12.5px "JetBrains Mono",monospace;font-style:normal;color:var(--mut)}
+.epi .linkbtn{margin-top:12px;font:500 13px "JetBrains Mono",monospace;color:var(--g2)}
+.epi .linkbtn:hover{color:var(--text)}
