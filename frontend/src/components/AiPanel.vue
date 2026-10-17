@@ -43,7 +43,7 @@ watch(() => ai.problem || lessonId.value, id => { if (id) ai.resetFor(id); }, { 
 
 <template>
   <div v-if="visible" id="ai-root">
-    <button v-show="!ai.open" class="ai-fab" type="button" title="ИИ-наставник" aria-label="Открыть ИИ-наставника" @click="open"><MascotCat shadow /></button>
+    <button v-show="!ai.open" class="ai-fab" type="button" title="ИИ-наставник" aria-label="Открыть ИИ-наставника" @click="open"><MascotCat shadow alive /></button>
     <section v-show="ai.open" class="ai-panel" aria-label="ИИ-наставник">
       <div class="ai-head"><span><MascotCat />ИИ-наставник</span><button type="button" aria-label="Закрыть" @click="ai.open = false">×</button></div>
       <div ref="msgsEl" class="ai-msgs">

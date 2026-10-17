@@ -4,13 +4,49 @@ let counter = 0;
 </script>
 
 <script setup>
-/* Маскот Fadecode: кот из присланного SVG, перекрашен в палитру проекта (зелёные --g и --g2). */
-defineProps({ shadow: Boolean });
+/* Маскот Fadecode: кот из присланного SVG, перекрашен в палитру проекта (зелёные --g и --g2).
+   С alive изредка косится на урок (зрачки вверх-влево) и моргает; интервалы случайные. */
+import { onBeforeUnmount, onMounted, ref } from "vue";
+
+const props = defineProps({ shadow: Boolean, alive: Boolean });
 const id = "cat" + ++counter;
+const looking = ref(false);
+const blinking = ref(false);
+const timers = new Set();
+
+const rnd = (a, b) => a + Math.random() * (b - a);
+function later(fn, ms) {
+  const t = setTimeout(() => { timers.delete(t); fn(); }, ms);
+  timers.add(t);
+}
+
+function glance() {
+  if (!document.hidden) {
+    looking.value = true;
+    later(() => { looking.value = false; }, rnd(1400, 2600));
+  }
+  later(glance, rnd(9000, 20000));
+}
+
+function blink() {
+  const once = () => { blinking.value = true; later(() => { blinking.value = false; }, 130); };
+  if (!document.hidden) {
+    once();
+    if (Math.random() < 0.2) later(once, 280); // иногда моргает дважды
+  }
+  later(blink, rnd(3500, 8000));
+}
+
+onMounted(() => {
+  if (!props.alive || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  later(glance, rnd(3000, 7000));
+  later(blink, rnd(2000, 5000));
+});
+onBeforeUnmount(() => { timers.forEach(clearTimeout); timers.clear(); });
 </script>
 
 <template>
-  <svg class="cat" viewBox="30 225 622 520" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <svg class="cat" :class="{ look: looking, blink: blinking }" viewBox="30 225 622 520" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <defs>
       <linearGradient :id="id + 'h'" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stop-color="#4c8736" />
@@ -42,9 +78,9 @@ const id = "cat" + ++counter;
 
     <g class="eyes">
       <ellipse cx="218" cy="552" rx="85" ry="100" fill="#ffffff" />
-      <ellipse cx="232" cy="556" rx="40" ry="67" :fill="'url(#' + id + 'p)'" />
+      <g class="pupil"><ellipse cx="232" cy="556" rx="40" ry="67" :fill="'url(#' + id + 'p)'" /></g>
       <ellipse cx="464" cy="552" rx="85" ry="100" fill="#ffffff" />
-      <ellipse cx="450" cy="556" rx="40" ry="67" :fill="'url(#' + id + 'p)'" />
+      <g class="pupil"><ellipse cx="450" cy="556" rx="40" ry="67" :fill="'url(#' + id + 'p)'" /></g>
     </g>
 
     <g transform="translate(64, 612) rotate(-21)"><rect x="-22.5" y="-10.5" width="45" height="21" rx="10.5" fill="#5d9c42" /></g>
@@ -53,3 +89,10 @@ const id = "cat" + ++counter;
     <g transform="translate(606, 658) rotate(41)"><rect x="-29.7" y="-11.5" width="59.5" height="23" rx="11.5" fill="#6aa94b" /></g>
   </svg>
 </template>
+
+<style scoped>
+.eyes { transform-box: fill-box; transform-origin: center; transition: transform .07s; }
+.blink .eyes { transform: scaleY(.08); }
+.pupil { transition: transform .32s cubic-bezier(.3, .7, .3, 1); }
+.look .pupil { transform: translate(-27px, -23px); }
+</style>
