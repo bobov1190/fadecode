@@ -22,9 +22,19 @@ function ac() {
   return ctx;
 }
 
+// Пока контекст «suspended», currentTime стоит на месте: звук, спланированный сейчас, после resume уже в прошлом и беззвучен.
+// Поэтому в таком состоянии ждём resume и планируем заново.
+let unlocked = false; // был ли хоть один жест: до него resume() не сработает, и звуки скопились бы в «залп»
+function whenRunning(c, fn) {
+  if (c.state === "running") return false;
+  if (unlocked) c.resume().then(fn).catch(() => {});
+  return true;
+}
+
 function tone(o) {
   const c = ac();
   if (!c) return;
+  if (whenRunning(c, () => tone(o))) return;
   const { f = 440, to = null, t = 0, d = 0.1, type = "sine", g = 0.2, a = 0.005 } = o;
   const t0 = c.currentTime + t;
   const osc = c.createOscillator(), env = c.createGain();
@@ -43,6 +53,7 @@ function tone(o) {
 function noise(o) {
   const c = ac();
   if (!c) return;
+  if (whenRunning(c, () => noise(o))) return;
   const { t = 0, d = 0.1, g = 0.15, f = 1500, q = 1 } = o;
   const t0 = c.currentTime + t;
   const n = Math.max(1, Math.floor(c.sampleRate * d));
@@ -116,12 +127,12 @@ export const Sfx = {
 
 // Первое касание страницы будит AudioContext (браузеры не дают играть звук без жеста).
 if (typeof window !== "undefined") {
-  ["pointerdown", "keydown"].forEach(ev => addEventListener(ev, () => { ac(); }, { once: true, capture: true }));
+  ["pointerdown", "keydown"].forEach(ev => addEventListener(ev, () => { unlocked = true; ac(); }, { once: true, capture: true }));
 }
 
 // Звук при клике по кнопкам, вкладкам и карточкам (один глобальный слушатель).
 const CLICKABLE = "button, a.btn, a.tab, a.card, .opt, .crumb, .back, .logo, .linkbtn";
-const OWN_SOUND = "#sfx-wrap, #ai-fab, #ai-close, #ai-send";
+const OWN_SOUND = "#sfx-wrap, #ai-fab, #ai-close, #ai-send, .chat-tab";
 export function installClickSounds() {
   document.addEventListener("click", e => {
     const t = e.target.closest(CLICKABLE);

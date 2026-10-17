@@ -37,7 +37,7 @@ function onKey(e) {
 }
 
 watch(() => ai.msgs.length, scroll);
-watch(() => ai.open, v => { if (v) scroll(); });
+watch(() => ai.open, v => { if (v) { scroll(); nextTick(() => inputEl.value && inputEl.value.focus()); } });
 watch(() => ai.problem || lessonId.value, id => { if (id) ai.resetFor(id); }, { immediate: true });
 </script>
 

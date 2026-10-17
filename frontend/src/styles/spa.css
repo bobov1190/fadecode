@@ -5,8 +5,6 @@
 .pop-links .linkbtn{display:block}
 
 @media(max-width:700px){
-  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;justify-content:space-around;gap:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));background:rgba(13,16,14,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
-  .tabs .tab{flex:1;text-align:center;padding:10px 6px;font-size:14px}
   main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
   .ai-fab{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .ai-panel{bottom:calc(76px + env(safe-area-inset-bottom,0px));right:16px;height:min(520px,calc(100vh - 170px))}
@@ -130,3 +128,47 @@ tr.detail td{background:var(--bg3)}
 .epi cite{display:block;margin-top:10px;font:400 12.5px "JetBrains Mono",monospace;font-style:normal;color:var(--mut)}
 .epi .linkbtn{margin-top:12px;font:500 13px "JetBrains Mono",monospace;color:var(--g2)}
 .epi .linkbtn:hover{color:var(--text)}
+
+/* Адаптив: узкие экраны. Отдельный блок в конце, чтобы перекрывать базовые правила выше. */
+@media(max-width:700px){
+  h1,h2,h3{overflow-wrap:anywhere}
+  /* код: чуть мельче и меньше полей, чтобы строки шаблонов влезали без прокрутки; pre и textarea меняются вместе */
+  pre.code{font-size:12.5px;padding:14px 14px}
+  .ed-pre,.ed textarea{font-size:12.5px;padding:14px 14px}
+  .slot,.slot.whole{margin-left:10px;margin-right:10px}
+  /* таблицы шире экрана прокручиваются внутри себя, а не растягивают страницу */
+  main table{display:block;max-width:100%;overflow-x:auto}
+  td,th{padding:10px 6px}
+  .fld,.fld.sm{font-size:16px}
+  .epi{margin-top:36px;padding:16px 18px}
+  .epi blockquote{font-size:15.5px;line-height:1.7}
+  /* кнопка и панель наставника */
+  .ai-fab{width:56px;height:56px;right:16px}
+  .ai-fab .cat{width:40px}
+  .ai-panel{left:12px;right:12px;width:auto;height:min(520px,calc(100vh - 170px));height:min(520px,calc(100dvh - 170px))}
+  .ai-row textarea{font-size:16px}
+}
+@media(max-width:380px){
+  main{padding-left:12px;padding-right:12px}
+}
+
+
+/* Нижнее меню на телефоне в духе Duolingo: крупные иконки без подписей, активная вкладка в «плитке». */
+.tabs .tab .nav-ico,.tabs .chat-tab{display:none}
+@media(max-width:700px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:space-around;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(13,16,14,.97);backdrop-filter:blur(10px);border-top:2px solid var(--line)}
+  .tabs .tab{position:relative;flex:1 1 0;min-width:0;max-width:72px;height:52px;padding:0;display:flex;align-items:center;justify-content:center;border:2px solid transparent;border-radius:14px;background:none;color:#6f7d6e;transition:background .15s,border-color .15s,color .15s,transform .1s}
+  .tabs .tab:active{transform:scale(.92)}
+  .tabs .tab.on{background:rgba(93,156,66,.16);border-color:var(--g);color:var(--g2)}
+  .tabs .tab .nav-ico{display:block;width:30px;height:30px}
+  .tabs .tab .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .tabs .badge{position:absolute;top:-2px;right:calc(50% - 26px);margin:0;min-width:18px;padding:0 5px;font-size:11px;line-height:18px;border:2px solid var(--bg)}
+  .tabs .chat-tab{display:flex}
+  .tabs .chat-tab .cat{width:38px;height:auto;display:block}
+  .tabs .chat-tab.on{background:rgba(93,156,66,.16);border-color:var(--g)}
+  /* кнопка чата теперь в меню, плавающая не нужна */
+  .ai-fab{display:none}
+  .ai-panel{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+  main{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+}
+@media(prefers-reduced-motion:reduce){.tabs .tab{transition:none}.tabs .tab:active{transform:none}}
